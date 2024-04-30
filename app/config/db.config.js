@@ -1,8 +1,8 @@
 module.exports = {
-  HOST: "127.0.0.1",
-  USER: "root",
-  PASSWORD: "1234",
-  DB: "setu",
+  HOST: "13.201.246.207",
+  USER: "anil_fl",
+  PASSWORD: "An18@nxyop",
+  DB: "db_tgc_setu",
   dialect: "mysql",
   pool: {
     max: 5,
