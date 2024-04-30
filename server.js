@@ -42,8 +42,8 @@ app.use('/api',router)
 
 
 const options = {
-  key: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.crt'),
-  cert: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.key'),
+  key: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.key'),
+  cert: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.crt'),
   
 };
 const httpsServer = https.createServer(options, app);
