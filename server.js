@@ -3,6 +3,8 @@ const cors = require("cors");
 require('dotenv').config();
 const db = require("./app/models");
 const router = require("./app/routes/routes");
+const https = require('https');
+const fs = require('fs');
 const app = express();
 
 var corsOptions = {
@@ -39,8 +41,18 @@ app.get("/", (req, res) => {
 app.use('/api',router)
 
 
+const options = {
+  key: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.crt'),
+  cert: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.key'),
+  
+};
+const httpsServer = https.createServer(options, app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`===>Server is running on port ${PORT}.`);
+// app.listen(PORT, () => {
+//   console.log(`===>Server is running on port ${PORT}.`);
+// });
+
+httpsServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
