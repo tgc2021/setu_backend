@@ -235,7 +235,7 @@ router.patch('/updatePassword',async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000);
 
     const otpExpier = new Date();
-    otpExpier.setMinutes(otpExpier.getMinutes() + 1);
+    otpExpier.setSeconds(otpExpier.getSeconds() + 30);
 
     // Create or Update the user record in the database with the generated OTP and its expiration time
 
@@ -271,7 +271,7 @@ router.patch('/updatePassword',async (req, res) => {
           from:  orgDetails?.email, // Sender's email address
           to: uniqueId, // Recipient's email address
           subject: 'SeTU User Registration OTP for verification', // Email subject
-          text: `Your OTP (It will expire after 1 min): ${otp}` // Email body
+          text: `Your OTP (It will expire after 30 sec): ${otp}` // Email body
         };
   
         // Send email

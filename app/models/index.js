@@ -32,7 +32,9 @@ const Organisation = sequelize.define('Organisation', {
     defaultValue: true // Set default value to true
   },
   email:DataTypes.STRING,
-  password:DataTypes.STRING
+  password:DataTypes.STRING,
+  authByEmail:DataTypes.BOOLEAN,
+  authByPhone:DataTypes.BOOLEAN
 });
 
 // Define Suborganisation model
@@ -45,7 +47,9 @@ const Suborganisation = sequelize.define('Suborganisation', {
     defaultValue: true // Set default value to true
   },
   email:DataTypes.STRING,
-  password:DataTypes.STRING
+  password:DataTypes.STRING,
+  authByEmail:DataTypes.BOOLEAN,
+  authByPhone:DataTypes.BOOLEAN
 });
 
 // Define User model
