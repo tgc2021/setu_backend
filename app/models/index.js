@@ -60,9 +60,9 @@ const User = sequelize.define('User', {
   phone:DataTypes.STRING,
   password: DataTypes.STRING,
   city: DataTypes.STRING,
-  step: {
-    type: DataTypes.INTEGER,
-    defaultValue: -1 // Set default value to null
+  firstTimeUser:   {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true // Set default value to true
   },
   pendingGame: {
     type: DataTypes.INTEGER,
@@ -88,12 +88,21 @@ const GameState = sequelize.define('GameState', {
   isValueBuddySelected: DataTypes.BOOLEAN,
   lastDiceCount: DataTypes.INTEGER,
   lastReachedPosition: DataTypes.INTEGER,
+  lastCrossedGatePositon: DataTypes.INTEGER,
   noOfKarmas: DataTypes.INTEGER,
   decisionImpact: DataTypes.INTEGER,
   totalScore: DataTypes.INTEGER,
   sessionTime: DataTypes.INTEGER,
   noOfWrongChoosen: DataTypes.INTEGER,
-  noOfCorrectChoosen: DataTypes.INTEGER
+  noOfCorrectChoosen: DataTypes.INTEGER,
+  isValueBuddyQuestion:{
+    type:DataTypes.BOOLEAN,
+    defaultValue:false
+  },
+  step: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1 // Set default value to null
+  },
 });
 
 // Define FeedbackQuestion model
@@ -147,6 +156,16 @@ Organisation.hasMany(Suborganisation);
 
 User.belongsTo(Suborganisation);
 Suborganisation.hasMany(User);
+
+Game.belongsTo(User);
+User.hasMany(Game);
+
+GameState.belongsTo(User);
+User.hasMany(GameState);
+
+GameState.belongsTo(Game);
+Game.hasMany(GameState);
+
 
 FeedbackQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(FeedbackQuestion);

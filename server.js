@@ -4,11 +4,17 @@ require('dotenv').config();
 const db = require("./app/models");
 const router = require("./app/routes/routes");
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const app = express();
-
+const socketIo =  require('socket.io');
+const { decodeTokenMiddleware } = require("./app/midllewares/authMiddleware");
 var corsOptions = {
-  origin: "*"
+  origin: "https://www.m2ost.com",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  credentials: true 
 };
 
 app.use(cors(corsOptions));
@@ -20,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-db.sequelize.sync({force: false})
+db.sequelize.sync({alter: false})
   .then(() => {
     console.log("Synced db.");
   })
@@ -33,12 +39,9 @@ db.sequelize.sync({force: false})
 //   console.log("Drop and re-sync db.");
 // });
 
-// simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to setu game." });
-});
 
-app.use('/api',router)
+
+
 
 
 const options = {
@@ -46,13 +49,29 @@ const options = {
   cert: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.crt'),
   
 };
-const httpsServer = https.createServer(options, app);
+// const server = http.createServer(app);
+const server = https.createServer(options, app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
-// app.listen(PORT, () => {
-//   console.log(`===>Server is running on port ${PORT}.`);
-// });
+const io = socketIo(server,{
+  cors: {
+    origin: '*',
+  }
+});
 
-httpsServer.listen(PORT, () => {
+io.use(decodeTokenMiddleware);
+
+
+
+
+// simple route
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to setu game." });
+});
+
+app.use('/api',router(io))
+
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

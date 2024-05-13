@@ -9,10 +9,40 @@ const https = require('https');
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
 const { type } = require('os');
+const { authenticateJWT } = require('../midllewares/authMiddleware');
 
 const agent = new https.Agent({
     rejectUnauthorized: false
 });
+// Overview data 
+router .get('/overview',authenticateJWT, async (req, res) => {
+ 
+
+  try {
+    // Fetch user-related data for the specified user ID
+    const userId = req.user.id;
+    const user = await db.User.findOne({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({type:'error', error: 'User not found' });
+    }
+
+
+      let step=-2;
+    if(user?.pendingGame){
+      step=0;
+    }else if(!user?.firstTimeUser){
+       step=-1;
+    }
+    res.json({type:'success',step});
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Create a new user
 router.post('/register', async (req, res) => {
   try {
@@ -93,20 +123,20 @@ router.post('/login', async (req, res) => {
   
       // Generate JWT token
       const token = jwt.sign(
-        { id: user.id, email: user.email, phone: user.phone,step:user.step,pendingGame:user.pendingGame },
+        { id: user.id, email: user.email, phone: user.phone,step:-1,pendingGame:user.pendingGame },
         process.env.JWT_SECRET,
         { expiresIn: '1d' } // Set expiry to 1 day
       );
   
       // Send JWT token as response
-      res.json({type:'success', message: 'Login successful', token ,step:user.step});
+      res.json({type:'success', message: 'Login successful', token ,step:-1});
     } catch (error) {
       res.status(500).json({type:'error', message: error.message });
     }
   });
 
 // Update a user by ID
-router.patch('/update/:id', async (req, res) => {
+router.patch('/update/:id', authenticateJWT,async (req, res) => {
   try {
     const user = await db.User.findByPk(req.params.id);
     if (!user) {
@@ -121,7 +151,7 @@ router.patch('/update/:id', async (req, res) => {
 });
 
 // Read all users
-router.get('/getAll', async (req, res) => {
+router.get('/getAll', authenticateJWT, async (req, res) => {
   try {
     const users = await db.User.findAll();
     res.json(users);
@@ -131,7 +161,7 @@ router.get('/getAll', async (req, res) => {
 });
 
 // Read a user by ID
-router.get('/', async (req, res) => {
+router.get('/',authenticateJWT, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.params.id);
     if (!user) {
@@ -145,7 +175,7 @@ router.get('/', async (req, res) => {
 
 
 // Check if a username exists
-router.get('/checkUserName/:username', async (req, res) => {
+router.get('/checkUserName/:username',  async (req, res) => {
   const { username } = req.params;
 
   try {
