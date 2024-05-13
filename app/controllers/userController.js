@@ -123,13 +123,13 @@ router.post('/login', async (req, res) => {
   
       // Generate JWT token
       const token = jwt.sign(
-        { id: user.id, email: user.email, phone: user.phone,step:-1,pendingGame:user.pendingGame },
+        { id: user.id, email: user.email, phone: user.phone,pendingGame:user.pendingGame },
         process.env.JWT_SECRET,
         { expiresIn: '1d' } // Set expiry to 1 day
       );
   
       // Send JWT token as response
-      res.json({type:'success', message: 'Login successful', token ,step:-1});
+      res.json({type:'success', message: 'Login successful', token });
     } catch (error) {
       res.status(500).json({type:'error', message: error.message });
     }
