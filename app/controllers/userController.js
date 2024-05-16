@@ -8,7 +8,7 @@ const axios=require('axios')
 const https = require('https');
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
-const { type } = require('os');
+const { type, platform } = require('os');
 const { authenticateJWT } = require('../midllewares/authMiddleware');
 
 const agent = new https.Agent({
@@ -21,6 +21,12 @@ router .get('/overview',authenticateJWT, async (req, res) => {
   try {
     // Fetch user-related data for the specified user ID
     const userId = req.user.id;
+    const suborgId=req.user.SuborganisationId;
+    console.log(req.user)
+        // Validate suborganisationId
+    if (!suborgId) {
+          return res.status(400).json({ message: 'suborganisation id is required.' });
+      }
     const user = await db.User.findOne({
       where: { id: userId }
     });
@@ -36,7 +42,28 @@ router .get('/overview',authenticateJWT, async (req, res) => {
     }else if(!user?.firstTimeUser){
        step=-1;
     }
-    res.json({type:'success',step});
+
+    
+
+      
+
+        // Check if the asset exists
+        const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
+        if (!assets) {
+            return res.status(404).json({ message: 'Asset configuration not found for given suborganisation.' });
+        }
+    
+
+        let payload={
+          "valueBuddies":(assets?.valueBuddies),
+         "tokens":(assets?.tokens),
+         "gatePositions":(assets?.gatePositions),
+        }
+
+
+
+
+    res.json({type:'success',step,configuration:payload});
   } catch (error) {
     console.error('Error fetching user data:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -123,7 +150,7 @@ router.post('/login', async (req, res) => {
   
       // Generate JWT token
       const token = jwt.sign(
-        { id: user.id, email: user.email, phone: user.phone,pendingGame:user.pendingGame },
+        { id: user.id, email: user.email, phone: user.phone,pendingGame:user.pendingGame,suborgId:user.SuborganisationId },
         process.env.JWT_SECRET,
         { expiresIn: '1d' } // Set expiry to 1 day
       );

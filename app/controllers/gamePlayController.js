@@ -139,11 +139,14 @@ module.exports = function(io) {
     } 
   });
 
-  async function handleRollDice(gameId,userId,diceValue){
+  async function handleRollDice(gameId,userId,diceValue,suborgId,isGateReached){
 
     let diceResult =0;
     if(diceValue!='$'){
       diceResult=diceValue??0;
+    }
+    if(isGateReached){
+      diceResult=0;
     }
     const gatePositions=[6,13,18,26,32,39,45,52,58,64,70,75,83,87,91,99];
     const karmaPositions=[18,39,58,75,91];
@@ -153,7 +156,8 @@ module.exports = function(io) {
      
        // Calculate updated values for lastReachedPosition and totalScore
        let lastReachedPosition =diceResult+ gameState?.lastReachedPosition??0 ;
-       let totalScore = gameState.totalScore + diceResult;
+       let totalScore =  (isGateReached?diceValue:0)+gameState.totalScore;
+       console.log("total score:",totalScore)
 
        if(lastReachedPosition<0){
         lastReachedPosition=0;
@@ -171,11 +175,12 @@ module.exports = function(io) {
     let isGateCrossed=false;
     let question=null;
     let reachedKarmas=0;
+    let index=0;
     // Iterate over gatePositions array
     for (let i = 0; i < gatePositions.length; i++) {
       if (lastReachedPosition >= gatePositions[i] ) {
         crossedGatePosition = gatePositions[i];
-     
+         index=i;
 
       }else{
         break;
@@ -211,7 +216,7 @@ if(diceResult>=0){
         // Update GameState table with the dice result and other values
         gameState=  await gameState.update({ 
           lastDiceCount: diceResult,
-          lastReachedPosition:  crossedGatePosition,
+          lastReachedPosition:  lastReachedPosition,
           totalScore: totalScore,
           noOfKarmas:reachedKarmas,
           lastCrossedGatePositon:isGateCrossed?crossedGatePosition:lastCrossedGatePositon,
@@ -242,13 +247,26 @@ if(diceResult>=0){
 
 
   if(gameState.isValueBuddyQuestion ){
-    question={
-      id:Math.random() ,
-      question:"How r you?",
-      options:["Fine","Good","Bad","Excallent"]
+
+    try {
+      // Perform the query
+      const valueBuddyQuestion = await db.ValueBuddyQuestion.findOne({
+        where: { SuborganisationId: suborgId },
+      });
+      if(valueBuddyQuestion.questions){
+      let questions=JSON.parse(valueBuddyQuestion.questions);
+      question={
+      id:index,
+      question:questions[index]?.question,
+      options:questions[index]?.options?.map(ele=>ele.option)
+    }
+    }
+
+    } catch (error) {
+      throw new Error('Failed to retrieve ValueBuddy question: ' + error.message);
     }
   }
-  if(totalScore>=100){
+  if(lastReachedPosition>=100){
     const user = await db.User.findByPk(userId);
     const game = await db.Game.findByPk(gameId);
     await user.update({
@@ -258,9 +276,15 @@ if(diceResult>=0){
       endTime:new Date()
     })
   }
+  let karmaFlag=null;
+  if(noOfKarmas<reachedKarmas){
+    karmaFlag=1
+  }else if(noOfKarmas>reachedKarmas){
+    karmaFlag=0
+  }
 
    
-       return {diceResult,lastReachedPosition:gameState.lastReachedPosition,question,  noOfKarmas:gameState.noOfKarmas}
+       return {diceResult,lastReachedPosition:gameState.lastReachedPosition,question,  noOfKarmas:gameState.noOfKarmas,totalScore,karmaFlag}
   }
 
   io.on('connection', socket => {
@@ -276,11 +300,12 @@ if(diceResult>=0){
       // fetch game state for  the game ID
       try {
       const userId = socket.user.id;
+      const suborgId=socket.user.SuborganisationId;
       console.log('joined room with id',gameId);
-      const {diceResult,lastReachedPosition,question,noOfKarmas}=await handleRollDice(gameId,userId,'$')
+      const {diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag}=await handleRollDice(gameId,userId,'$', suborgId, false)
   
       // Emit the dice-rolled event to the specific game room identified by gameId
-      io.to(gameId).emit('dice-rolled', { gameId, diceResult,lastReachedPosition,question,noOfKarmas });
+      io.to(gameId).emit('dice-rolled', { gameId, diceResult,lastReachedPosition,question,noOfKarmas ,totalScore,karmaFlag});
 
     } catch (error) {
       console.error('Error rolling dice:', error);
@@ -292,13 +317,14 @@ if(diceResult>=0){
     console.log('dice rolled',gameId,socket.user.id)
       try {
         const userId = socket.user.id;
+        const suborgId=socket.user.SuborganisationId;
         // Handle rolling dice
          const diceValue= Math.floor(Math.random() * 6) + 1;
       
-        const {diceResult,lastReachedPosition,question,noOfKarmas}=await handleRollDice(gameId,userId,diceValue)
+        const {diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag}=await handleRollDice(gameId,userId,diceValue, suborgId,false)
   
         // Emit the dice-rolled event to the specific game room identified by gameId
-        io.to(gameId).emit('dice-rolled', { gameId, diceResult,lastReachedPosition,question,noOfKarmas });
+        io.to(gameId).emit('dice-rolled', { gameId, diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag });
       } catch (error) {
         console.error('Error rolling dice:', error);
       }
@@ -308,9 +334,23 @@ if(diceResult>=0){
     socket.on('handle-valuebuddy-question',async ({gameId,questionId,selectedOption})=>{
  //check the option value add it lastreachdPosition and update lastCrossedGatePositon
  try {
+
   const userId = socket.user.id;
-      const {diceResult,lastReachedPosition,question,noOfKarmas}=await handleRollDice(gameId,userId,2);
-      io.to(gameId).emit('dice-rolled', { gameId,lastReachedPosition,noOfKarmas,question, choosenOptionResult:{option:'A',value:2} });
+  const suborgId=socket.user.SuborganisationId;
+
+  const valueBuddyQuestion = await db.ValueBuddyQuestion.findOne({
+    where: { SuborganisationId: suborgId },
+  });
+
+  let questions=JSON.parse(valueBuddyQuestion.questions);
+  const options=questions[questionId]?.options;
+  const value=options[selectedOption].value;
+  const isCorrect=value<0?false:true;
+
+      const {diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag}=await handleRollDice(gameId,userId,value, suborgId,true);
+      io.to(gameId).emit('dice-rolled', { gameId,lastReachedPosition,noOfKarmas,question, 
+        choosenOptionResult:!question?{optionId:selectedOption,isCorrect,metaInfo:options[selectedOption].metaInfo}:null ,
+        totalScore,karmaFlag});
     } catch (error) {
       console.error('Error handling valuebuddy question:', error);
     }

@@ -126,17 +126,33 @@ const PollOption = sequelize.define('PollOption', {
 });
 
 // Define PollResponse model
-const PollResponse = sequelize.define('PollResponse', {});
+const PollResponse = sequelize.define('PollResponse', {
+  response: DataTypes.TEXT
+});
 
 // Define ValueBuddyQuestions model
 const ValueBuddyQuestion = sequelize.define('ValueBuddyQuestion', {
-  question: DataTypes.STRING,
-  options: DataTypes.TEXT
+  questions: DataTypes.TEXT,
 });
 
 // Define Assets model
 const Assets = sequelize.define('Assets', {
-  logo: DataTypes.STRING
+
+valueBuddies: {
+  type: DataTypes.JSON, // Define gatePositions as an array of integers
+
+},
+
+tokens:  {
+  type:  DataTypes.JSON,// Define token names as an array of strings
+
+
+},
+
+gatePositions: {
+    type: DataTypes.JSON, // Define gatePositions as an array of integers
+    
+},
 });
 
 // Define Otp model

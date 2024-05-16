@@ -28,11 +28,17 @@ decodeTokenMiddleware :(socket, next) => {
   const token = socket.handshake.query.token;
 
   if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
       if (err) {
         return next(new Error('Authentication error'));
       }
-      socket.user = decoded; // Attach decoded user information to socket
+      const user = await db.User.findOne({
+        where: { id: decoded.id }
+      });
+      if (!user) {
+        return res.status(404).json({type:'error', error: 'User not found' });
+      }
+      socket.user = user; // Attach decoded user information to socket
       next();
     });
   } else {
