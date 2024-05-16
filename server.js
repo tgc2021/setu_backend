@@ -63,13 +63,13 @@ db.sequelize.sync({alter: false})
 
 
 
-// const options = {
-//   key: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.key'),
-//   cert: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.crt'),
+const options = {
+  key: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.key'),
+  cert: fs.readFileSync('/opt/bitnami/letsencrypt/certificates/m2ost.com.crt'),
   
-// };
-const server = http.createServer(app);
-// const server = https.createServer(options, app);
+};
+// const server = http.createServer(app);
+const server = https.createServer(options, app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
 const io = socketIo(server,{
