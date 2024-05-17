@@ -54,16 +54,14 @@ router .get('/overview',authenticateJWT, async (req, res) => {
         }
     
 
-        let payload={
-          "valueBuddies":(assets?.valueBuddies),
-         "tokens":(assets?.tokens),
-         "gatePositions":(assets?.gatePositions),
-        }
 
+    res.json({type:'success',
+     step, 
+    "correctValueBuddies":(assets?.valueBuddies),
+    "tokens":(assets?.tokens),
+    "gatePositions":(assets?.gatePositions)
+  });
 
-
-
-    res.json({type:'success',step,configuration:payload});
   } catch (error) {
     console.error('Error fetching user data:', error);
     res.status(500).json({ error: 'Internal Server Error' });

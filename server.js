@@ -12,31 +12,31 @@ const { decodeTokenMiddleware } = require("./app/midllewares/authMiddleware");
 
 
 // dynamic cors
-var whitelist = [
-  process.env.FRONTEND_TEST_URL,
-  process.env.FRONTEND_LOCAL_URL
+// var whitelist = [
+//   process.env.FRONTEND_TEST_URL,
+//   process.env.FRONTEND_LOCAL_URL
 
-];
-
-var corsOptionsDelegate = function (req, callback) {
-  console.log('origin:',req.header('Origin'),whitelist)
-  const corsOptions = {
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true 
-  };
-  if (whitelist.indexOf(req.header("Origin")) !== -1) {
-    corsOptions["origin"] =true // renable the requested origin in the CORS response
-  } else {
-    corsOptions["origin"]=false // disable CORS for this request
-  }
-  callback(null, corsOptions); // callback expects two parameters: error and options
-};
-
-app.use(cors(corsOptionsDelegate ));
+// ];
 
 
+// var corsOptionsDelegate = function (req, callback) {
+//   console.log('origin:',req.header('Origin'),whitelist)
+//   const corsOptions = {
+//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//     preflightContinue: false,
+//     optionsSuccessStatus: 204,
+//   };
+//   if (whitelist.indexOf(req.header("Origin")) !== -1) {
+//     corsOptions["origin"] =true // renable the requested origin in the CORS response
+//   } else {
+//     corsOptions["origin"]=false // disable CORS for this request
+//   }
+//   callback(null, corsOptions); // callback expects two parameters: error and options
+// };
+
+// app.use(cors(corsOptionsDelegate ));
+
+ app.use(cors( ));
 
 // parse requests of content-type - application/json
 app.use(express.json());
@@ -71,11 +71,14 @@ const options = {
 // const server = http.createServer(app);
 const server = https.createServer(options, app);
 // set port, listen for requests
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 9000;
+
 const io = socketIo(server,{
   cors: {
     origin: '*',
-  }
+  },
+  maxHttpBufferSize: 1e6, // Adjust buffer size
+  pingTimeout: 60000
 });
 
 io.use(decodeTokenMiddleware);

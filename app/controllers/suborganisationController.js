@@ -59,7 +59,10 @@ router.get('/check', async (req, res) => {
     if (suborganisation === null) {
       res.status(404).json({ type:'error',message: 'Organisation/Suborganisation not found' });
     } else {
-      res.json({organisationId:suborganisation.id});
+
+      const configuredAuth=(suborganisation.authByEmail && suborganisation.authByPhone)?'Both':
+      suborganisation.authByEmail?"Email":suborganisation.authByPhone?"Phone":null;
+      res.json({id:suborganisation.id, configuredAuth});
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -138,13 +141,17 @@ router.post('/addValuebuddyQuestions', async (req, res) => {
         if(!q.question)
           return res.status(400).json({ message: 'Missing question' });
 
-        if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value)) {
-          return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option and value.' });
+        if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || !option.movePositionTo ||!option.metaInfo)) {
+          return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option, metaInfo,value and movePositionTo.' });
+       }
+      
+       if(movePositionTo>100 || movePositionTo<0){
+        return res.status(400).json({message:'Options array for question: '+q.question+'must contain movePositionTo value between 0 to 100 (both inclusive)'})
        }
        if (q.options.length<2||q.options.length>6) {
         return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain atleast 2 and atmost 6 non-empty option and value.' });
      }
-      
+    
           const options = q.options.map(option => option.option);
           const uniqueOptions = new Set(options);
           if (uniqueOptions.size !== options.length) {
@@ -156,7 +163,7 @@ router.post('/addValuebuddyQuestions', async (req, res) => {
      let createData= questions.map(q=>{
       let obj={};
       obj['question']=q.question;
-      obj['options']=q.options.map(option => ({ option: option.option, value: option.value, metaInfo:option.metaInfo }));
+      obj['options']=q.options.map(option => ({ option: option.option, value: option.value, metaInfo:option.metaInfo,movePositionTo:option.movePositionTo }));
       return obj
      })
      const createdQuestions = await db.ValueBuddyQuestion.create({
@@ -178,6 +185,11 @@ router.patch('/updateValuebuddyQuestion', async (req, res) => {
   if(!suborgId){
     return res.status(404).json({ message: 'Please provide  suborgid!' });
   }
+  const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
+  if (!assets) {
+    return res.status(404).json({ message: 'Asset configuration not found for given suborganisation.' });
+}
+  
 
       // Check if the question exists for the given suborganization
       const existingQuestion = await db.ValueBuddyQuestion.findOne({ where: { SuborganisationId:suborgId } });
@@ -198,17 +210,22 @@ router.patch('/updateValuebuddyQuestion', async (req, res) => {
           return res.status(400).json({ message: 'Updated question already exists for the given suborganization.' });
         }
        if(q.options){
-        if (  !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value)) {
-          return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option and value.' });
-       }
+     
+       if ( !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || (option.value<0 && !option.movePositionTo) ||!option.metaInfo)) {
+        return res.status(400).json({ message: 'Options array for questionId: ' + q.questionId + ` must contain non-empty option, metaInfo,value and movePositionTo.(note: movePositionTo should be provided for wrong options only!).` });
+     }
+
+     if( q.options.some(option => option.value<0 && ( option.movePositionTo > assets?.gatePositions?.[q.questionId] || option.movePositionTo<0 ||  assets?.gatePositions.some(id=>id==option.movePositionTo)))){
+      return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain movePositionTo value between [0  to ${assets?.gatePositions?.[q.questionId]}(current gate position)) (note: excluding gate positions)`})
+     }
        if (q.options.length<2||q.options.length>6) {
-        return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain atleast 2 and atmost 6 non-empty option and value.' });
+        return res.status(400).json({ message: 'Options array for questionId: ' + q.questionId + ' must contain atleast 2 and atmost 6 non-empty option and value.' });
      }
 
      const optionValues = q.options.map(option => option.option);
      const uniqueOptions = new Set(optionValues);
      if (uniqueOptions.size !== optionValues.length) {
-         return res.status(400).json({ message: 'Options must be unique for question:'+q.question });
+         return res.status(400).json({ message: 'Options must be unique for questionId:'+q.questionId });
      }
     }
     }
@@ -220,7 +237,7 @@ router.patch('/updateValuebuddyQuestion', async (req, res) => {
     for (const q of questions) {
       questionsData[q.questionId]={
         question:q.question?? questionsData[q.questionId].question,
-        options:q.options?q.options.map(option=>{return {"option":option.option,"value":option.value,metaInfo:option.metaInfo}}): questionsData[q.questionId].options
+        options:q.options?q.options.map(option=>{return {"option":option.option,"value":option.value,metaInfo:option.metaInfo,movePositionTo:option.movePositionTo}}): questionsData[q.questionId].options
       }
 
     }
