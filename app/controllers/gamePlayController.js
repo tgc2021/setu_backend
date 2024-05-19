@@ -156,11 +156,13 @@ module.exports = function(io) {
     if(isGateReached){
       diceResult=0;
     }
- 
-     
+
+      let from=gameState?.lastReachedPosition??-1
        // Calculate updated values for lastReachedPosition and totalScore
        let lastReachedPosition = diceResult+ gameState?.lastReachedPosition??0 ;
 
+
+     
        if(movePositionTo!=-1){
         lastReachedPosition=movePositionTo;
        }
@@ -184,6 +186,8 @@ module.exports = function(io) {
     let isGateCrossed=false;
     let question=null;
     let reachedKarmas=0;
+    let addedKarmas=[]
+    let removedKarmas=[]
     let index=0;
     // Iterate over gatePositions array
     for (let i = 0; i < gatePositions.length; i++) {
@@ -201,6 +205,14 @@ module.exports = function(io) {
     for (let i = 0; i < karmaPositions.length; i++) {
       if (lastReachedPosition >= karmaPositions[i] ) {
         reachedKarmas = i+1;
+        if(i+1>noOfKarmas){
+          addedKarmas.push(i);
+        }
+      }else if(noOfKarmas>i+1 ||(noOfKarmas>=i+1 && diceValue<0)){
+      
+        
+        removedKarmas.push(i);
+        
       }else{
         break;
       }
@@ -294,7 +306,8 @@ if(diceResult>=0 && movePositionTo==-1){
   }
 
    
-       return {diceResult:gameState?.lastDiceCount,lastReachedPosition:gameState.lastReachedPosition,question, noOfKarmas:gameState.noOfKarmas,totalScore,karmaFlag}
+       return {diceResult:gameState?.lastDiceCount,from,lastReachedPosition:gameState.lastReachedPosition,
+        question, noOfKarmas:gameState.noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}
   }
 
   io.on('connection', socket => {
@@ -316,10 +329,11 @@ if(diceResult>=0 && movePositionTo==-1){
        })
       console.log('joined room with id',gameId);
       if(gameState?.isValueBuddySelected){
-      const {diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag}=await handleRollDice(gameId,userId,'$', suborgId, false,-1)
+      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,'$', suborgId, false,-1)
   
       // Emit the dice-rolled event to the specific game room identified by gameId
-      io.to(gameId).emit('dice-rolled', { gameId, diceResult,lastReachedPosition,question,noOfKarmas ,totalScore,karmaFlag,refreshed:true});
+      io.to(gameId).emit('dice-rolled', { gameId, diceResult, from ,lastReachedPosition,
+        question,noOfKarmas ,totalScore,karmaFlag,refreshed:true,addedKarmas,removedKarmas});
       }
     } catch (error) {
       console.error('Error rolling dice:', error);
@@ -335,10 +349,11 @@ if(diceResult>=0 && movePositionTo==-1){
         // Handle rolling dice
          const diceValue= Math.floor(Math.random() * 6) + 1;
       
-        const {diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag}=await handleRollDice(gameId,userId,diceValue, suborgId,false,-1)
+        const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,diceValue, suborgId,false,-1)
   
         // Emit the dice-rolled event to the specific game room identified by gameId
-        io.to(gameId).emit('dice-rolled', { gameId, diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag });
+        io.to(gameId).emit('dice-rolled', { gameId, diceResult,from,lastReachedPosition,
+          question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas });
       } catch (error) {
         console.error('Error rolling dice:', error);
       }
@@ -364,10 +379,10 @@ if(diceResult>=0 && movePositionTo==-1){
  
   const metaInfo=options[selectedOption]?.metaInfo;
  
-      const {diceResult,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo);
-      io.to(gameId).emit('dice-rolled', { gameId,lastReachedPosition,noOfKarmas,question, 
+      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo);
+      io.to(gameId).emit('dice-rolled', { gameId,from,lastReachedPosition,noOfKarmas,question, 
         choosenOptionResult:!question?{optionId:selectedOption,isCorrect,metaInfo}:null ,
-        totalScore,karmaFlag});
+        totalScore,karmaFlag,addedKarmas,removedKarmas});
     } catch (error) {
       console.error('Error handling valuebuddy question:', error);
     }
