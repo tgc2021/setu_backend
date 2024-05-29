@@ -44,6 +44,24 @@ decodeTokenMiddleware :(socket, next) => {
   } else {
     next(new Error('Authentication error'));
   }
+},
+
+// Middleware to check if suborgId exists
+
+
+checkSuborgExists :async (req, res, next) => {
+ 
+  const { suborgId } = req.body;
+  if(!suborgId){
+    return res.status(400).send({ error: 'suborgId cantbe empty!' });
+  }
+  const suborg = await db.Suborganisation.findByPk(suborgId);
+
+  if (!suborg) {
+    return res.status(404).send({ error: 'SuborgId does not exist.' });
+  }
+
+  next();
 }
 
 }

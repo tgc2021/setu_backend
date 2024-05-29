@@ -1,6 +1,7 @@
 const dbConfig = require("../config/db.config.js");
 
 const {Sequelize ,DataTypes}= require("sequelize");
+const { options } = require("../controllers/assetController.js");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
@@ -93,15 +94,21 @@ const GameState = sequelize.define('GameState', {
   decisionImpact: DataTypes.INTEGER,
   totalScore: DataTypes.INTEGER,
   sessionTime: DataTypes.INTEGER,
-  noOfWrongChoosen: DataTypes.INTEGER,
-  noOfCorrectChoosen: DataTypes.INTEGER,
+  noOfWrongChoosen:{
+    type: DataTypes.INTEGER,
+    defaultValue: 0 // Set default value to 0
+  },
+  noOfCorrectChoosen: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0 // Set default value to 0
+  },
   isValueBuddyQuestion:{
     type:DataTypes.BOOLEAN,
     defaultValue:false
   },
   step: {
     type: DataTypes.INTEGER,
-    defaultValue: 1 // Set default value to null
+    defaultValue: 1 // Set default value to 1
   },
 });
 
@@ -117,17 +124,15 @@ const FeedbackResponse = sequelize.define('FeedbackResponse', {
 
 // Define PollQuestion model
 const PollQuestion = sequelize.define('PollQuestion', {
-  question: DataTypes.STRING
-});
-
-// Define PollOption model
-const PollOption = sequelize.define('PollOption', {
-  option: DataTypes.STRING
+  question: DataTypes.STRING,
+  options:{
+    type:  DataTypes.JSON,
+  }
 });
 
 // Define PollResponse model
 const PollResponse = sequelize.define('PollResponse', {
-  response: DataTypes.TEXT
+  response: DataTypes.TEXT 
 });
 
 // Define ValueBuddyQuestions model
@@ -139,20 +144,23 @@ const ValueBuddyQuestion = sequelize.define('ValueBuddyQuestion', {
 const Assets = sequelize.define('Assets', {
 
 valueBuddies: {
-  type: DataTypes.JSON, // Define gatePositions as an array of integers
+  type: DataTypes.JSON, // Define valuebuddies as an array of integers
 
 },
 
 tokens:  {
   type:  DataTypes.JSON,// Define token names as an array of strings
-
-
 },
 
 gatePositions: {
     type: DataTypes.JSON, // Define gatePositions as an array of integers
     
 },
+karmaPositions: {
+  type: DataTypes.JSON, // Define gatePositions as an array of integers
+  
+},
+
 });
 
 // Define Otp model
@@ -176,12 +184,14 @@ Suborganisation.hasMany(User);
 Game.belongsTo(User);
 User.hasMany(Game);
 
+Game.belongsTo(Suborganisation);
+Suborganisation.hasMany(Game);
+
 GameState.belongsTo(User);
 User.hasMany(GameState);
 
 GameState.belongsTo(Game);
 Game.hasMany(GameState);
-
 
 FeedbackQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(FeedbackQuestion);
@@ -201,14 +211,8 @@ Suborganisation.hasMany(FeedbackResponse);
 PollQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(PollQuestion);
 
-PollOption.belongsTo(PollQuestion);
-PollQuestion.hasMany(PollOption);
-
 PollResponse.belongsTo(PollQuestion);
 PollQuestion.hasMany(PollResponse);
-
-PollResponse.belongsTo(PollOption);
-PollOption.hasMany(PollResponse);
 
 PollResponse.belongsTo(User);
 User.hasMany(PollResponse);
@@ -235,8 +239,7 @@ db.Game=Game;
 db.GameState=GameState;
 db.FeedbackQuestion=FeedbackQuestion;
 db.FeedbackResponse=FeedbackResponse;
-db.PollQuestion=PollOption;
-db.PollOption=PollOption;
+db.PollQuestion=PollQuestion;
 db.PollResponse=PollResponse;
 db.ValueBuddyQuestion=ValueBuddyQuestion;
 db.Assets=Assets;

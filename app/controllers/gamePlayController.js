@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
-const { options } = require('./organisationController');
+
 
 module.exports = function(io) {
 
@@ -44,11 +44,13 @@ module.exports = function(io) {
   router.post('/start', async (req, res) => {
 
    const userId=req.user.id;
+   const suborgId=req.user.SuborganisationId
     try {
       // Create a new game
       const newGame = await db.Game.create({
         startTime: new Date(),
-        UserId:userId
+        UserId:userId,
+        SuborganisationId:suborgId
       });
   
       // Update user's pendingGame column with the new game's ID
@@ -59,7 +61,7 @@ module.exports = function(io) {
       console.error('Error starting a new game:', error);
       res.status(500).json({ type:'error', message: error.message });
     }
-  });
+  }); 
 
   router.post('/set-gametype', async (req, res) => {
     const { gameType='single',gameId } = req.body; // Assuming userId and gameType are provided in the request body
@@ -115,6 +117,25 @@ module.exports = function(io) {
     }
   });
   
+  router.post('/end-game',async(req,res)=>{
+
+    const userId=req.user.id;
+     try {
+       // end the game
+       const {gameId}=req.body
+       const game = await db.Game.findByPk(gameId);
+       const user = await db.User.findByPk(userId);
+       await user.update({
+         pendingGame:null
+       })
+      await game.update({endTime:new Date()})
+       res.status(201).json({type: "success", });
+     } catch (error) {
+       console.error('Error starting a new game:', error);
+       res.status(500).json({ type:'error', message: error.message });
+     }
+   }); 
+
 
   router.post('/valuebuddy-check', async (req, res) => {
     const { gameId } = req.body;
@@ -139,15 +160,19 @@ module.exports = function(io) {
     } 
   });
 
-  async function handleRollDice(gameId,userId,diceValue,suborgId,isGateReached,movePositionTo){
+  async function handleRollDice(gameId,userId,diceValue,suborgId,isGateReached,movePositionTo,isCorrect){
 
+    const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
 
-    const gatePositions=[6,13,18,26,32,39,45,52,58,64,70,75,83,87,91,99];
-    const karmaPositions=[18,39,58,75,91];
+    const gatePositions=assets?.gatePositions??[]
+    const karmaPositions=assets?.karmaPositions??[]
     
     //    // Find the current game state for the user
        let gameState = await db.GameState.findOne({ where: { gameId, userId } });
-       console.log(gameState)
+       console.log(gameState);
+
+       let noOfCorrectChoosen=isGateReached&& isCorrect?gameState?.noOfCorrectChoosen+1:gameState?.noOfCorrectChoosen
+       let noOfWrongChoosen=isGateReached&& !isCorrect?gameState?.noOfWrongChoosen+1:gameState?.noOfWrongChoosen
 
     let diceResult =0;
     if(diceValue!='$'){
@@ -241,7 +266,11 @@ if(diceResult>=0 && movePositionTo==-1){
           totalScore: totalScore,
           noOfKarmas:reachedKarmas,
           lastCrossedGatePositon:isGateCrossed?crossedGatePosition:lastCrossedGatePositon,
-          isValueBuddyQuestion:diceValue!='$'?isValueBuddyQuestion:undefined
+          isValueBuddyQuestion:diceValue!='$'?isValueBuddyQuestion:undefined,
+          noOfCorrectChoosen,
+          noOfWrongChoosen,
+          decisionImpact:lastReachedPosition,
+          setp:lastReachedPosition>=100?4:gameState?.step
          })
   }
   else{
@@ -262,6 +291,10 @@ if(diceResult>=0 && movePositionTo==-1){
           noOfKarmas:reachedKarmas,
           lastCrossedGatePositon:crossedGatePosition,
           isValueBuddyQuestion:diceValue!='$'?isValueBuddyQuestion:undefined,
+          noOfCorrectChoosen,
+          noOfWrongChoosen,
+          decisionImpact:lastReachedPosition,
+          setp:lastReachedPosition>=100?4:gameState?.step
          })
   }
      
@@ -287,15 +320,9 @@ if(diceResult>=0 && movePositionTo==-1){
       throw new Error('Failed to retrieve ValueBuddy question: ' + error.message);
     }
   }
-  if(lastReachedPosition>=100){
-    const user = await db.User.findByPk(userId);
-    const game = await db.Game.findByPk(gameId);
-    await user.update({
-      pendingGame:null
-    })
-    await game.update({
-      endTime:new Date()
-    })
+  if(lastReachedPosition>=100 && !gameState.isValueBuddyQuestion ){
+    let gameState = await db.GameState.findOne({ where: { gameId, userId } });
+     await gameState.update({step:4})
   }
 
   let karmaFlag=null;
@@ -329,7 +356,7 @@ if(diceResult>=0 && movePositionTo==-1){
        })
       console.log('joined room with id',gameId);
       if(gameState?.isValueBuddySelected){
-      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,'$', suborgId, false,-1)
+      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,'$', suborgId, false,-1,null)
   
       // Emit the dice-rolled event to the specific game room identified by gameId
       io.to(gameId).emit('dice-rolled', { gameId, diceResult, from ,lastReachedPosition,
@@ -349,7 +376,7 @@ if(diceResult>=0 && movePositionTo==-1){
         // Handle rolling dice
          const diceValue= Math.floor(Math.random() * 6) + 1;
       
-        const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,diceValue, suborgId,false,-1)
+        const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,diceValue, suborgId,false,-1,null)
   
         // Emit the dice-rolled event to the specific game room identified by gameId
         io.to(gameId).emit('dice-rolled', { gameId, diceResult,from,lastReachedPosition,
@@ -379,7 +406,7 @@ if(diceResult>=0 && movePositionTo==-1){
  
   const metaInfo=options[selectedOption]?.metaInfo;
  
-      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo);
+      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo,isCorrect);
       io.to(gameId).emit('dice-rolled', { gameId,from,lastReachedPosition,noOfKarmas,question, 
         choosenOptionResult:!question?{optionId:selectedOption,isCorrect,metaInfo}:null ,
         totalScore,karmaFlag,addedKarmas,removedKarmas});

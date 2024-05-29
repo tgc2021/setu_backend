@@ -59,7 +59,8 @@ router .get('/overview',authenticateJWT, async (req, res) => {
      step, 
     "correctValueBuddies":(assets?.valueBuddies),
     "tokens":(assets?.tokens),
-    "gatePositions":(assets?.gatePositions)
+    "gatePositions":(assets?.gatePositions),
+    "karmaPostions":(assets?.karmaPostions)
   });
 
   } catch (error) {

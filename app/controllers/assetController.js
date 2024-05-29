@@ -4,10 +4,10 @@ const db = require('../models');
 // Create an asset for a suborganization
 router.post('/configure', async (req, res) => {
     try {
-        const { suborgId, valueBuddies, tokens, gatePositions } = req.body;
+        const { suborgId, valueBuddies, tokens, gatePositions ,karmaPositions} = req.body;
 
         // Check if all fields are provided
-        if (!suborgId || !valueBuddies || !tokens || !gatePositions) {
+        if (!suborgId || !valueBuddies || !tokens || !gatePositions || !karmaPositions) {
             return res.status(400).json({ message: 'All fields are required.' });
         }
 
@@ -25,14 +25,31 @@ router.post('/configure', async (req, res) => {
         if (!Array.isArray(tokens) || tokens.length !== 4 || !tokens.every(str => typeof str === 'string')) {
             return res.status(400).json({ message: 'tokens must be an array of 4 strings.' });
         }
-
+     
         // Validate gatePositions
         if (!Array.isArray(gatePositions) || gatePositions.length !== 16 || !gatePositions.every(num => Number.isInteger(num) && num >= 1 && num <= 100)) {
             return res.status(400).json({ message: 'gatePositions must be an array of 16 numbers between 1 and 100.' });
         }
+        
+        const uniqueGatePositions = new Set(gatePositions);
+        if (uniqueGatePositions.size !== gatePositions.length) {
+            return res.status(400).json({ message: 'gatePositions must contain unique numbers.' });
+        }
+
+
+      
+     // Validate karmaPositions
+     if (!Array.isArray(karmaPositions) || karmaPositions.length !== 5 || !karmaPositions.every(num => Number.isInteger(num) && num >= 1 && num <= 100)) {
+        return res.status(400).json({ message: 'gatePositions must be an array of 5 numbers between 1 and 100.' });
+    }
+
+    const uniqueKarmaPositions= new Set(karmaPositions);
+    if (uniqueKarmaPositions.size !== karmaPositions.length) {
+        return res.status(400).json({ message: 'karmaPositions must contain unique numbers.' });
+    }
 
         // Create the asset
-        const newAsset = await db.Assets.create({ SuborganisationId:suborgId, valueBuddies, tokens, gatePositions });
+        const newAsset = await db.Assets.create({ SuborganisationId:suborgId, valueBuddies, tokens, gatePositions,karmaPositions });
 
         res.status(201).json(newAsset);
     } catch (err) {
@@ -43,7 +60,7 @@ router.post('/configure', async (req, res) => {
 // Update an asset for a suborganization by ID
 router.patch('/updateConfiguration', async (req, res) => {
     try {
-        const { suborgId, valueBuddies, tokens, gatePositions } = req.body;
+        const { suborgId, valueBuddies, tokens, gatePositions,karmaPositions } = req.body;
 
         // Validate suborganisationId
         if (!suborgId) {
@@ -63,24 +80,46 @@ router.patch('/updateConfiguration', async (req, res) => {
         }
 
         if (valueBuddies) {
+            
             const uniqueValueBuddies = new Set(valueBuddies);
             if (uniqueValueBuddies.size !== valueBuddies.length) {
                 return res.status(400).json({ message: 'valueBuddies must contain unique numbers.' });
             }
         }
 
-        // Validate tokens
         if (tokens && (!Array.isArray(tokens) || tokens.length !== 4 || !tokens.every(str => typeof str === 'string'))) {
             return res.status(400).json({ message: 'tokens must be an array of 4 strings.' });
         }
+        // Validate tokens
+       
 
+        if(gatePositions){
         // Validate gatePositions
         if (gatePositions && (!Array.isArray(gatePositions) || gatePositions.length !== 16 || !gatePositions.every(num => Number.isInteger(num) && num >= 1 && num <= 100))) {
             return res.status(400).json({ message: 'gatePositions must be an array of 16 numbers between 1 and 100.' });
         }
+              
+        const uniqueGatePositions = new Set(gatePositions);
+        if (uniqueGatePositions.size !== gatePositions.length) {
+            return res.status(400).json({ message: 'gatePositions must contain unique numbers.' });
+        }
+
+       }
+        if(karmaPositions){
+      
+     // Validate karmaPositions
+     if (!Array.isArray(karmaPositions) || karmaPositions.length !== 5 || !karmaPositions.every(num => Number.isInteger(num) && num >= 1 && num <= 100)) {
+        return res.status(400).json({ message: 'gatePositions must be an array of 5 numbers between 1 and 100.' });
+    }
+
+    const uniqueKarmaPositions= new Set(karmaPositions);
+    if (uniqueKarmaPositions.size !== karmaPositions.length) {
+        return res.status(400).json({ message: 'karmaPositions must contain unique numbers.' });
+    }
+}
 
         // Update the asset
-        await asset.update({ SuborganisationId:suborgId, valueBuddies, tokens, gatePositions });
+        await asset.update({ SuborganisationId:suborgId, valueBuddies, tokens, gatePositions ,karmaPositions});
 
         res.json(asset);
     } catch (err) {
