@@ -28,7 +28,6 @@ router .get('/overview',authenticateJWT, async (req, res) => {
     // Fetch user-related data for the specified user ID
     const userId = req.user.id;
     const suborgId=req.user.SuborganisationId;
-    console.log(req.user)
         // Validate suborganisationId
     if (!suborgId) {
           return res.status(400).json({ message: 'suborganisation id is required.' });
@@ -55,7 +54,10 @@ router .get('/overview',authenticateJWT, async (req, res) => {
 
         // Check if the asset exists
         const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
-        if (!assets) {
+      
+        const valueBuddyQuestion=await db.ValueBuddyQuestion.findOne({where:{SuborganisationId:suborgId}});
+
+        if (!assets || !valueBuddyQuestion?.question) {
             return res.status(404).json({ message: 'Game configuration not found for given organisation/suborganisation.' });
         }
     
@@ -580,7 +582,7 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
     req.file.mimetype.includes("spreadsheetml")){
       users = readXlsxFile();
     }
-    
+
     if(users.length==0){
       return res.status(400).send(`No user data!`);
     }

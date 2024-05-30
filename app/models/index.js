@@ -1,7 +1,5 @@
 const dbConfig = require("../config/db.config.js");
-
 const {Sequelize ,DataTypes}= require("sequelize");
-const { options } = require("../controllers/assetController.js");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
@@ -161,6 +159,7 @@ karmaPositions: {
   
 },
 
+
 });
 
 // Define Otp model
@@ -227,8 +226,8 @@ Suborganisation.hasMany(PollResponse);
 ValueBuddyQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(ValueBuddyQuestion);
 
-Assets.belongsTo(Suborganisation);
-Assets.belongsTo(Organisation);
+Assets.belongsTo(Suborganisation)
+
 
 
 
