@@ -8,13 +8,11 @@ const axios=require('axios')
 const https = require('https');
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
-const { type, platform } = require('os');
+const excel = require('exceljs');
 const { authenticateJWT, checkSuborgExists } = require('../midllewares/authMiddleware');
-const xlsx = require('xlsx');
 const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
-const path = require('path');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const agent = new https.Agent({
@@ -549,11 +547,34 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
 
   let users = [];
 
-  const readXlsxFile = () => {
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    return xlsx.utils.sheet_to_json(sheet);
+  const readXlsxFile = async (buffer) => {
+    const workbook = new excel.Workbook();
+    await workbook.xlsx.load(buffer);
+    const worksheet = workbook.getWorksheet(1); // Assuming you want to read the first worksheet
+    const rows = [];
+
+  let headerRow = [];
+  worksheet.eachRow((row, rowNumber) => {
+    const rowData = {};
+    row.eachCell((cell, colNumber) => {
+      const value = cell.value;
+      if (rowNumber === 1) {
+        // If it's the first row, store the values as header keys
+        headerRow.push(value);
+      } else {
+        // Otherwise, store the values with corresponding header keys
+        const key = headerRow[colNumber - 1]; // Adjusting for 0-based index
+        rowData[key] = value;
+      }
+    });
+
+    // If it's not the first row, push the data object into the rows array
+    if (rowNumber !== 1) {
+      rows.push(rowData);
+    }
+  });
+
+  return rows;
   };
 
   const readCsvFile = (filePath) => {
@@ -580,11 +601,10 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
     if(
     req.file.mimetype.includes("excel") ||
     req.file.mimetype.includes("spreadsheetml")){
-      users = readXlsxFile();
+      users = await readXlsxFile(req.file.buffer);
     }
-
-    if(users.length==0){
-      return res.status(400).send(`No user data!`);
+    if(!Array.isArray(users) ||Array.isArray(users) && users.length==0){
+      return res.status(400).send(`No valid user data!`);
     }
  
     // Validate and filter users
