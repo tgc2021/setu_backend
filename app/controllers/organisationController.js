@@ -6,7 +6,7 @@ const db = require('../models');
 // Create a new organisation
 router.post('/create', async (req, res) => {
   try {
-    const requiredFields = ['name','email','password'];
+    const requiredFields = ['name','email','password','authByEmail','authByPhone'];
 
     // Check for missing fields
     const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -19,7 +19,9 @@ router.post('/create', async (req, res) => {
         name:req.body.name,
         isActive:req.body?.isActive,
         email:req.body.email,
-        password:req.body.password
+        password:req.body.password,
+        authByEmail:req.body.authByEmail,
+        authByPhone:req.body.authByPhone
     }
  
     const organisation = await db.Organisation.create(createData);
@@ -28,7 +30,9 @@ router.post('/create', async (req, res) => {
       name:req.body.name,
       OrganisationId:organisation.id,
       email:req.body.email,
-      password:req.body.password
+      password:req.body.password,
+      authByEmail:req.body.authByEmail,
+      authByPhone:req.body.authByPhone
   }
     const suborganisation = await db.Suborganisation.create(createSubData);
     res.status(201).json({message:'Organisation created successfully.',suborganisation})

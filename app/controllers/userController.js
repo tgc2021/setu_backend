@@ -9,8 +9,14 @@ const https = require('https');
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
 const { type, platform } = require('os');
-const { authenticateJWT } = require('../midllewares/authMiddleware');
-
+const { authenticateJWT, checkSuborgExists } = require('../midllewares/authMiddleware');
+const xlsx = require('xlsx');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const agent = new https.Agent({
     rejectUnauthorized: false
 });
@@ -50,7 +56,7 @@ router .get('/overview',authenticateJWT, async (req, res) => {
         // Check if the asset exists
         const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
         if (!assets) {
-            return res.status(404).json({ message: 'Asset configuration not found for given suborganisation.' });
+            return res.status(404).json({ message: 'Game configuration not found for given organisation/suborganisation.' });
         }
     
 
@@ -60,7 +66,12 @@ router .get('/overview',authenticateJWT, async (req, res) => {
     "correctValueBuddies":(assets?.valueBuddies),
     "tokens":(assets?.tokens),
     "gatePositions":(assets?.gatePositions),
-    "karmaPostions":(assets?.karmaPostions)
+    "karmaPostions":(assets?.karmaPostions),
+    "name":user.name,
+    "username":user.username,
+    "email":user.email,
+    "phone":user.phone,
+    "city":user.city
   });
 
   } catch (error) {
@@ -126,17 +137,23 @@ router.post('/register', async (req, res) => {
 
 //login user
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const { username, password ,suborgId} = req.body;
+    if (!username || !password ) {
         return res.status(400).json({type:'error', message: 'Username and password are required' });
       }
 
+
     try {
+
+
       // Find user by username or email
       const user = await db.User.findOne({ where: { username } });
   
+      if(!suborgId || suborgId && !await db.Suborganisation.findByPk(suborgId)){
+        return res.status(400).json({type:'error', message: 'Suborgnisation not found!' });
+      }
       // Check if user exists
-      if (!user) {
+      if (!user || user && user.SuborganisationId!=suborgId) {
         return res.status(404).json({type:'error', message: 'User not found' });
       }
   
@@ -145,6 +162,9 @@ router.post('/login', async (req, res) => {
   
       if (!isPasswordValid) {
         return res.status(401).json({type:'error', message: 'Invalid password' });
+      }
+      if(user.isActive==0){
+        return res.status(401).json({type:'error', message: 'You have been blocked by the organisation!' });
       }
   
       // Generate JWT token
@@ -219,16 +239,23 @@ router.get('/checkUserName/:username',  async (req, res) => {
 //update password
 
 router.patch('/updatePassword',async (req, res) => {
-    const { new_password, confirm_password,uniqueId} = req.body;
+    const { new_password, confirm_password,uniqueId,suborgId} = req.body;
     
   
     try {
       // Find the user by ID
-      const user = await getUserDetails(uniqueId);
+      const user = await getUserDetails(uniqueId,suborgId);
   
       // Check if the user exists
-      if (!user) {
+      if(!suborgId || suborgId && !await db.Suborganisation.findByPk(suborgId)){
+        return res.status(400).json({type:'error', message: 'Suborgnisation not found!' });
+      }
+      // Check if user exists
+      if (!user ) {
         return res.status(404).json({type:'error', message: 'User not found' });
+      }
+      if(user.isActive==0){
+        return res.status(401).json({type:'error', message: 'You have been blocked by the organisation!' });
       }
   
   
@@ -347,9 +374,29 @@ router.patch('/updatePassword',async (req, res) => {
   
     try {
   if(!newUser){
-      const isUserExsit= await getUserDetails(uniqueId);
-      if(!isUserExsit)
-      return  res.status(404).json({ type:'error', message: 'No User with given phone number or email!' });
+      const isUserExsit= await getUserDetails(uniqueId,orgId);
+      if(!orgId || orgId && !await db.Suborganisation.findByPk(orgId)){
+        return res.status(400).json({type:'error', message: 'Suborgnisation not found!' });
+      }
+      // Check if user exists
+      if (!isUserExsit) {
+        return res.status(404).json({type:'error', message: 'No user found with given phone number or email!' });
+      }
+      if(isUserExsit.isActive==0){
+        return res.status(401).json({type:'error', message: 'You have been blocked by the organisation!' });
+      }
+    
+   }else{
+
+    const isUserExsit= await getUserDetails(uniqueId,orgId);
+    if(!orgId || orgId && !await db.Suborganisation.findByPk(orgId)){
+      return res.status(400).json({type:'error', message: 'Suborgnisation not found!' });
+    }
+    // Check if user exists
+    if (isUserExsit) {
+      return res.status(404).json({type:'error', message: 'User found with given phone number or email!' });
+    }
+
    }
       // Send OTP
       const otpSent = await sendOtp(uniqueId,orgId,newUser);
@@ -401,10 +448,23 @@ const verifyOtp = async (uniqueId, otp,newUser=false) => {
 
 // API endpoint to verify OTP
 router.post('/verifyOTP', async (req, res) => {
-  const { uniqueId, otp } = req.body;
+  const { uniqueId, otp,suborgId } = req.body;
 
   try {
     // Verify OTP
+
+
+    const isUserExsit= await getUserDetails(uniqueId,suborgId);
+    if(!suborgId || suborgId && !await db.Suborganisation.findByPk(suborgId)){
+      return res.status(400).json({type:'error', message: 'Suborgnisation not found!' });
+    }
+    // Check if user exists
+    if (!isUserExsit ) {
+      return res.status(404).json({type:'error', message: 'User not found!' });
+    }
+    if(isUserExsit.isActive==0){
+      return res.status(401).json({type:'error', message: 'You have been blocked by the organisation!' });
+    }
     const isOtpVerified = await verifyOtp(uniqueId, otp,false);
     if(isOtpVerified){
       const otpExpier = new Date();
@@ -448,14 +508,15 @@ router.post('/verifyOTP', async (req, res) => {
 });
 
 
-const getUserDetails = async (uniqueId) => {
+const getUserDetails = async (uniqueId,suborgId) => {
   try {
     const user = await db.User.findOne({
       where: {
         [Op.or]: [
           { email: uniqueId },
           { phone: uniqueId }
-        ]
+        ],
+        SuborganisationId:suborgId
       },
       include: [{
         model: db.Suborganisation,
@@ -464,7 +525,7 @@ const getUserDetails = async (uniqueId) => {
       }]
     });
 
-    if (user) {
+    if (user ) {
       // If user found, return user details
       return user;
     } else {
@@ -477,5 +538,166 @@ const getUserDetails = async (uniqueId) => {
   }
 };
 
+
+
+router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  let users = [];
+
+  const readXlsxFile = () => {
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    return xlsx.utils.sheet_to_json(sheet);
+  };
+
+  const readCsvFile = (filePath) => {
+    return new Promise((resolve, reject) => {
+      const results = [];
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', () => {
+          resolve(results);
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
+  };
+
+  try {
+    // if (req.file.mimetype === 'text/csv') {
+    //   users = await readCsvFile();
+    // } else {
+    //   users = readXlsxFile();
+    // }
+    if(
+    req.file.mimetype.includes("excel") ||
+    req.file.mimetype.includes("spreadsheetml")){
+      users = readXlsxFile();
+    }
+    
+    if(users.length==0){
+      return res.status(400).send(`No user data!`);
+    }
+ 
+    // Validate and filter users
+    const usernames = new Set();
+    const emails = new Map();
+    const phones = new Map();
+    const suborgIds = new Set();
+
+    for (let user of users) {
+    
+
+      if (!user.username || !user.name || !user.password || !user.city || !user.SuborganisationId ) {
+        return res.status(400).send('Missing fileds.');
+      }
+      if( !user.email && !user.phone){
+        return res.status(400).send('Missing fileds.');
+      }
+
+      if (!user.SuborganisationId) {
+        return res.status(400).send('Missing SuborganisationId for some users.');
+      }
+
+      // Check if SuborganisationId exists
+      const suborgExists = await db.Suborganisation.findByPk(user.SuborganisationId);
+      if (!suborgExists) {
+        return res.status(400).send(`SuborganisationId ${user.SuborganisationId} does not exist.`);
+      }
+
+      suborgIds.add(user.SuborganisationId);
+
+      if (usernames.has(user.username)) {
+        return res.status(400).send(`Duplicate username ${user.username} found in the uploaded file.`);
+      }
+
+      usernames.add(user.username);
+
+      if (!emails.has(user.SuborganisationId)) {
+        emails.set(user.SuborganisationId, new Set());
+      
+      }
+
+      if(!phones.has(user.SuborganisationId)){
+        phones.set(user.SuborganisationId, new Set());
+      }
+
+      if (emails.get(user.SuborganisationId).has(user.email)) {
+        return res.status(400).send(`Duplicate email ${user.email} found in the uploaded file for SuborganisationId ${user.SuborganisationId}.`);
+      }
+
+      if (phones.get(user.SuborganisationId).has(user.phone)) {
+        return res.status(400).send(`Duplicate phone ${user.phone} found in the uploaded file for SuborganisationId ${user.SuborganisationId}.`);
+      }
+
+      emails.get(user.SuborganisationId).add(user.email);
+      phones.get(user.SuborganisationId).add(user.phone);
+
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(user.password, salt);
+      user.password = hashedPassword
+    }
+
+    // Check for duplicate usernames in the database
+    const existingUsers = await db.User.findAll({ where:{
+      username: {[Op.in]: Array.from(usernames) },
+    }});
+
+    if (existingUsers.length > 0) {
+      return res.status(400).send(`Duplicate username found in the database.`);
+    }
+
+
+    // Check for duplicate emails and phones within the same SuborganisationId in the database
+    for (let [SuborganisationId, email] of emails.entries()) {
+      const existingUsers = await db.User.findAll({where:{
+        SuborganisationId: SuborganisationId,
+        email: { [Op.in]:Array.from(email) }
+      }});
+
+      if (existingUsers.length > 0) {
+        return res.status(400).send(`Duplicate email found in the database for SuborganisationId ${SuborganisationId}.`);
+      }
+    }
+
+    for (let [SuborganisationId, phone] of phones.entries()) {
+      const existingUsers = await db.User.findAll({where:{
+        SuborganisationId: SuborganisationId,
+        phone: { [Op.in]:Array.from(phone) }
+      }});
+
+      if (existingUsers.length > 0) {
+        return res.status(400).send(`Duplicate phone found in the database for suborgId ${SuborganisationId}.`);
+      }
+    }
+
+
+    // Create users
+    await  db.User.bulkCreate(users);
+    res.status(200).send('Users uploaded successfully.');
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal server error.');
+  } finally {
+    // Clean up the uploaded file
+    // fs.access(filePath, fs.constants.F_OK, (err) => {
+    //   if (!err) {
+    //     fs.unlink(filePath, (err) => {
+    //       if (err) console.error('Error deleting the file:', err);
+    //     });
+    //   } else {
+    //     console.error('File does not exist:', filePath);
+    //   }
+    // });
+  }
+});
 
 module.exports = router;

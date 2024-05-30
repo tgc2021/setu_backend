@@ -56,9 +56,22 @@ router.get('/check', async (req, res) => {
   try {
     console.log('orgId',req.query.id)
     const suborganisation = await db.Suborganisation.findByPk(req.query.id);
+    
     if (suborganisation === null) {
       res.status(404).json({ type:'error',message: 'Organisation/Suborganisation not found' });
-    } else {
+    }
+     else {
+      
+      const organisation= await db.Organisation.findByPk(suborganisation.OrganisationId);
+      if (organisation === null) {
+       return  res.status(404).json({ type:'error',message: 'Organisation/Suborganisation not found' });
+      }
+
+      if(  suborganisation && suborganisation.isActive==0 || organisation && organisation.isActive==0   ){
+        return res.status(404).json({ type:'error',message: 'Organisation/Suborganisation is not active!' });
+      }
+
+   
 
       const configuredAuth=(suborganisation.authByEmail && suborganisation.authByPhone)?'Both':
       suborganisation.authByEmail?"Email":suborganisation.authByPhone?"Phone":null;
