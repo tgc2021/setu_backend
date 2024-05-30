@@ -55,7 +55,7 @@ router .get('/overview',authenticateJWT, async (req, res) => {
       
         const valueBuddyQuestion=await db.ValueBuddyQuestion.findOne({where:{SuborganisationId:suborgId}});
 
-        if (!assets || !valueBuddyQuestion?.question) {
+        if (!assets || !valueBuddyQuestion?.questions) {
             return res.status(404).json({ message: 'Game configuration not found for given organisation/suborganisation.' });
         }
     
