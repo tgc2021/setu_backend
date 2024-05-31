@@ -154,11 +154,11 @@ router.post('/addValuebuddyQuestions', async (req, res) => {
         if(!q.question)
           return res.status(400).json({ message: 'Missing question' });
 
-        if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || !option.movePositionTo ||!option.metaInfo)) {
+        if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || option.value <0 && !option.movePositionTo ||!option.metaInfo)) {
           return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option, metaInfo,value and movePositionTo.' });
        }
       
-       if(movePositionTo>100 || movePositionTo<0){
+       if( q.options.some(option=>option?.movePositionTo>100 || option?.movePositionTo<0)){
         return res.status(400).json({message:'Options array for question: '+q.question+'must contain movePositionTo value between 0 to 100 (both inclusive)'})
        }
        if (q.options.length<2||q.options.length>6) {

@@ -612,7 +612,6 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
     const emails = new Map();
     const phones = new Map();
     const suborgIds = new Set();
-
     for (let user of users) {
     
 
@@ -621,6 +620,9 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
       }
       if( !user.email && !user.phone){
         return res.status(400).send('Missing fileds.');
+      }
+      if(user.phone){
+         user.phone="+"+user.phone;
       }
 
       if (!user.SuborganisationId) {
@@ -699,7 +701,6 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
         return res.status(400).send(`Duplicate phone found in the database for suborgId ${SuborganisationId}.`);
       }
     }
-
 
     // Create users
     await  db.User.bulkCreate(users);
