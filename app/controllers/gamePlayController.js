@@ -188,8 +188,10 @@ module.exports = function(io) {
 
 
      
-       if(movePositionTo!=-1){
+       if(movePositionTo!=-1 && !isCorrect){
         lastReachedPosition=movePositionTo;
+       }else if(movePositionTo && isCorrect){
+        lastReachedPosition+=movePositionTo;
        }
     
        let totalScore =  (isGateReached?diceValue:0)+gameState.totalScore;
@@ -246,7 +248,7 @@ module.exports = function(io) {
 
 
 
-if(diceResult>=0 && movePositionTo==-1){
+if(isCorrect || movePositionTo==-1){
     if( crossedGatePosition!=lastCrossedGatePositon){
       //get index of crossedGatePosition
       // with that index get the question
@@ -402,13 +404,13 @@ if(diceResult>=0 && movePositionTo==-1){
   const options=questions[questionId]?.options;
   const value=options[selectedOption]?.value;
   const isCorrect=value<0?false:true;
-  const movePositionTo=isCorrect?-1:options[selectedOption]?.movePositionTo;
+  const movePositionTo=isCorrect?options[selectedOption]?.movePositionBy:options[selectedOption]?.movePositionTo;
  
   const metaInfo=options[selectedOption]?.metaInfo;
  
       const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo,isCorrect);
       io.to(gameId).emit('dice-rolled', { gameId,from,lastReachedPosition,noOfKarmas,question, 
-        choosenOptionResult:!question?{optionId:selectedOption,isCorrect,metaInfo}:null ,
+        choosenOptionResult:{optionId:selectedOption,isCorrect,metaInfo} ,
         totalScore,karmaFlag,addedKarmas,removedKarmas});
     } catch (error) {
       console.error('Error handling valuebuddy question:', error);

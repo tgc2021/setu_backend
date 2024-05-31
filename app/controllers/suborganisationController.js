@@ -154,12 +154,15 @@ router.post('/addValuebuddyQuestions', async (req, res) => {
         if(!q.question)
           return res.status(400).json({ message: 'Missing question' });
 
-        if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || option.value <0 && !option.movePositionTo ||!option.metaInfo)) {
-          return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option, metaInfo,value and movePositionTo.' });
+        if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || option.value <0 && !option.movePositionTo ||option.value >=0 && option.movePositionBy==undefined  ||!option.metaInfo)) {
+          return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option, metaInfo,value and movePositionTo(for wrong options) or movePositionBy(for correct options).' });
        }
       
        if( q.options.some(option=>option?.movePositionTo>100 || option?.movePositionTo<0)){
         return res.status(400).json({message:'Options array for question: '+q.question+'must contain movePositionTo value between 0 to 100 (both inclusive)'})
+       }
+       if( q.options.some(option=>option?.movePositionBy>3 || option?.movePositionTo<0)){
+        return res.status(400).json({message:'Options array for question: '+q.question+'must contain movePositionBy value between 0 to 3 (both inclusive)'})
        }
        if (q.options.length<2||q.options.length>6) {
         return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain atleast 2 and atmost 6 non-empty option and value.' });
@@ -176,7 +179,7 @@ router.post('/addValuebuddyQuestions', async (req, res) => {
      let createData= questions.map(q=>{
       let obj={};
       obj['question']=q.question;
-      obj['options']=q.options.map(option => ({ option: option.option, value: option.value, metaInfo:option.metaInfo,movePositionTo:option.movePositionTo }));
+      obj['options']=q.options.map(option => ({ option: option.option, value: option.value, metaInfo:option.metaInfo,movePositionTo:option.movePositionTo,movePositionBy:option.movePositionBy }));
       return obj
      })
      const createdQuestions = await db.ValueBuddyQuestion.create({

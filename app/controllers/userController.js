@@ -652,11 +652,11 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
         phones.set(user.SuborganisationId, new Set());
       }
 
-      if (emails.get(user.SuborganisationId).has(user.email)) {
+      if (user.email && emails.get(user.SuborganisationId).has(user.email)) {
         return res.status(400).send(`Duplicate email ${user.email} found in the uploaded file for SuborganisationId ${user.SuborganisationId}.`);
       }
 
-      if (phones.get(user.SuborganisationId).has(user.phone)) {
+      if (user.phone && phones.get(user.SuborganisationId).has(user.phone)) {
         return res.status(400).send(`Duplicate phone ${user.phone} found in the uploaded file for SuborganisationId ${user.SuborganisationId}.`);
       }
 
@@ -665,6 +665,7 @@ router.post('/uploadBulkUsers', upload.single('file'), async (req, res) => {
 
       // Hash the password
       const salt = await bcrypt.genSalt(10);
+      console.log("password",user)
       const hashedPassword = await bcrypt.hash(user.password, salt);
       user.password = hashedPassword
     }
