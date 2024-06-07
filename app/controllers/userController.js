@@ -268,7 +268,7 @@ router.patch('/updatePassword',async (req, res) => {
       // Check if the user exists and the OTP matches
       const otp = await db.Otp.findOne({ where: { email: uniqueId } });
 
-      if( otp && otp.otpExpireTime > new Date()){
+      if( otp && otp.otpExpireTime < new Date()){
         return res.status(400).json({type:'error', message: 'Session expired!' });
       }
   
