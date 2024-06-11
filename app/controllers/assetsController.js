@@ -5,25 +5,34 @@ const db = require('../models');
 
 router.post('/configure', async (req, res) => {
     try {
-        const { suborgId, valueBuddies, tokens, gatePositions ,karmaPositions} = req.body;
+        const { suborgId,choosenValueBuddies, valueBuddies, tokens, gatePositions ,karmaPositions} = req.body;
   
         // Check if all fields are provided
-        if (!suborgId || !valueBuddies || !tokens || !gatePositions || !karmaPositions) {
-            return res.status(400).json({ message: 'All fields are required:(suborgId, valueBuddies, tokens, gatePositions ,karmaPositions)' });
+        if (!suborgId || !valueBuddies || !tokens || !gatePositions || !karmaPositions || !choosenValueBuddies) {
+            return res.status(400).json({ message: 'All fields are required:(suborgId, valueBuddies, choosenValueBuddies, tokens, gatePositions ,karmaPositions)' });
         }
   
         // Validate valueBuddies
-        if (!Array.isArray(valueBuddies) || valueBuddies.length === 0 ) {
-            return res.status(400).json({ message: 'valueBuddies must be a non-empty array of numbers.' });
+        if (!Array.isArray(choosenValueBuddies) ||choosenValueBuddies.length >6 || choosenValueBuddies<=0 ) {
+            return res.status(400).json({ message: 'choose atleast 1 and atmost 6 valueBudidies.' });
         }
   
-        const uniqueValueBuddies = new Set(valueBuddies);
-        if (uniqueValueBuddies.size !== valueBuddies.length) {
-            return res.status(400).json({ message: 'valueBuddies must contain unique numbers.' });
+        const uniqueChoosenValueBuddies = new Set(choosenValueBuddies);
+        if ( uniqueChoosenValueBuddies.size !== choosenValueBuddies.length) {
+            return res.status(400).json({ message: 'choosenValueBuddies must contain unique numbers.' });
         }
   
         // Validate tokens
         if (!Array.isArray(tokens) || tokens.length !== 4 || !tokens.every(str => typeof str === 'string')) {
+            return res.status(400).json({ message: 'tokens must be an array of 4 strings.' });
+        }
+
+           // Validate valueBuddies
+           const uniqueValueBuddies = new Set(valueBuddies);
+        if (uniqueValueBuddies.size !== valueBuddies.length) {
+            return res.status(400).json({ message: 'valueBuddies must be unique .' });
+        }
+           if (!Array.isArray(valueBuddies) || valueBuddies.length !== 16 || !valueBuddies.every(str => typeof str === 'string')) {
             return res.status(400).json({ message: 'tokens must be an array of 4 strings.' });
         }
      
@@ -54,7 +63,7 @@ router.post('/configure', async (req, res) => {
         return res.status(400).json({ message: 'Assets configuration is already exists for the given Suborgnisation!' });
     }
         // Create the asset
-        const newAsset = await db.Assets.create({ SuborganisationId:suborgId, valueBuddies, tokens, gatePositions,karmaPositions });
+        const newAsset = await db.Assets.create({ SuborganisationId:suborgId, valueBuddies, tokens, gatePositions,karmaPositions,choosenValueBuddies });
   
         return res.status(201).json(newAsset);
     } catch (err) {
@@ -64,7 +73,7 @@ router.post('/configure', async (req, res) => {
 // Update an asset for a suborganization by ID
 router.patch('/updateConfiguration', async (req, res) => {
     try {
-        const { suborgId, valueBuddies, tokens, gatePositions,karmaPositions } = req.body;
+        const { suborgId, valueBuddies, tokens, gatePositions,karmaPositions,choosenValueBuddies } = req.body;
 
         // Validate suborganisationId
         if (!suborgId) {
@@ -79,22 +88,38 @@ router.patch('/updateConfiguration', async (req, res) => {
 
 
         // Validate valueBuddies
-        if (valueBuddies && (!Array.isArray(valueBuddies) || valueBuddies.length === 0 )) {
-            return res.status(400).json({ message: 'valueBuddies must be a non-empty array of unique numbers.' });
-        }
+       
 
         if (valueBuddies) {
             
+            if( (!Array.isArray(valueBuddies) || valueBuddies.length === 0 )) {
+                return res.status(400).json({ message: 'valueBuddies must be a non-empty array of unique numbers.' });
+            }
             const uniqueValueBuddies = new Set(valueBuddies);
             if (uniqueValueBuddies.size !== valueBuddies.length) {
                 return res.status(400).json({ message: 'valueBuddies must contain unique numbers.' });
             }
         }
 
+     
+        //validate choosen value buddies
+     if(choosenValueBuddies){
+        if (!Array.isArray(choosenValueBuddies) ||choosenValueBuddies.length >6 || choosenValueBuddies<=0 ) {
+            return res.status(400).json({ message: 'choose atleast 1 and atmost 6 valueBudidies.' });
+        }
+  
+        const uniqueChoosenValueBuddies = new Set(choosenValueBuddies);
+        if ( uniqueChoosenValueBuddies.size !== choosenValueBuddies.length) {
+            return res.status(400).json({ message: 'choosenValueBuddies must contain unique numbers.' });
+        }
+    }
+  
+        // Validate tokens
         if (tokens && (!Array.isArray(tokens) || tokens.length !== 4 || !tokens.every(str => typeof str === 'string'))) {
             return res.status(400).json({ message: 'tokens must be an array of 4 strings.' });
         }
-        // Validate tokens
+
+
        
 
         if(gatePositions){

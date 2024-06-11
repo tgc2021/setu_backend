@@ -141,7 +141,7 @@ const ValueBuddyQuestion = sequelize.define('ValueBuddyQuestion', {
 // Define Assets model
 const Assets = sequelize.define('Assets', {
 
-valueBuddies: {
+choosenValueBuddies: {
   type: DataTypes.JSON, // Define valuebuddies as an array of integers
 
 },
@@ -157,6 +157,11 @@ gatePositions: {
 karmaPositions: {
   type: DataTypes.JSON, // Define gatePositions as an array of integers
   
+},
+
+valueBuddies: {
+  type: DataTypes.JSON, // Define valuebuddies as an array of integers
+
 },
 
 

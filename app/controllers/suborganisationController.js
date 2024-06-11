@@ -10,20 +10,20 @@ router.post('/create', async (req, res) => {
     const requiredFields = ['name','OrganisationId','email','password','authByEmail','authByPhone'];
 
     // Check for missing fields
-    const missingFields = requiredFields.filter(field => !req.body[field]);
+    const missingFields = requiredFields.filter(field => req.body[field]==undefined);
   
     if (missingFields.length > 0) {
         return res.status(400).json({ message: `The following fields are missing: ${missingFields.join(', ')}` });
     }
 
-    const organisation = await db.Organisation.findByPk(req.body.organisationId);
+    const organisation = await db.Organisation.findByPk(req.body.OrganisationId);
     if (organisation === null) {
       res.status(404).json({type:'error', message: 'Organisation not found' });
     } 
     const createData={
         name:req.body.name,
         isActive:req.body?.isActive,
-        OrganisationId:req.body.organisationId,
+        OrganisationId:req.body.OrganisationId,
         email:req.body.email,
         password:req.body.password,
         authByEmail:req.body.authByEmail,

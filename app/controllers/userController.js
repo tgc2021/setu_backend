@@ -54,8 +54,9 @@ router .get('/overview',authenticateJWT, async (req, res) => {
         const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
       
         const valueBuddyQuestion=await db.ValueBuddyQuestion.findOne({where:{SuborganisationId:suborgId}});
-
-        if (!assets || !valueBuddyQuestion?.questions) {
+        const feedback=await db.FeedbackQuestion.findOne({where:{SuborganisationId:suborgId}});
+        const poll=await db.PollQuestion.findOne({where:{SuborganisationId:suborgId}});
+        if (!assets || !valueBuddyQuestion?.questions || !poll || !feedback) {
             return res.status(404).json({ message: 'Game configuration not found for given organisation/suborganisation.' });
         }
     
@@ -63,8 +64,9 @@ router .get('/overview',authenticateJWT, async (req, res) => {
 
     res.json({type:'success',
      step, 
-    "correctValueBuddies":(assets?.valueBuddies),
+    "correctValueBuddies":(assets?.choosenValueBuddies),
     "tokens":(assets?.tokens),
+    "valueBuddies":(assets?.valueBuddies),
     "gatePositions":(assets?.gatePositions),
     "karmaPostions":(assets?.karmaPostions),
     "name":user.name,

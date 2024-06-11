@@ -9,7 +9,7 @@ router.post('/create', async (req, res) => {
     const requiredFields = ['name','email','password','authByEmail','authByPhone'];
 
     // Check for missing fields
-    const missingFields = requiredFields.filter(field => !req.body[field]);
+    const missingFields = requiredFields.filter(field => req.body[field]==undefined);
   
     if (missingFields.length > 0) {
         return res.status(400).json({ message: `The following fields are missing: ${missingFields.join(', ')}` });
