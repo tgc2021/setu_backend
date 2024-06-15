@@ -46,17 +46,15 @@ router .get('/overview',authenticateJWT, async (req, res) => {
        step=-1;
     }
 
-    
+  
 
+        // Check if the Game Configuration exists
+        const gameConfiguration = await db.GameConfiguration.findOne({where:{SuborganisationId:suborgId}});
       
-
-        // Check if the asset exists
-        const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
-      
-        const valueBuddyQuestion=await db.ValueBuddyQuestion.findOne({where:{SuborganisationId:suborgId}});
+        const valueBuddyQuestion=await db.ValueBuddyQuestion.findAll({where:{SuborganisationId:suborgId}});
         const feedback=await db.FeedbackQuestion.findOne({where:{SuborganisationId:suborgId}});
         const poll=await db.PollQuestion.findOne({where:{SuborganisationId:suborgId}});
-        if (!assets || !valueBuddyQuestion?.questions || !poll || !feedback) {
+        if (!gameConfiguration || !valueBuddyQuestion || valueBuddyQuestion && valueBuddyQuestion.length!=16 || !poll || !feedback) {
             return res.status(404).json({ message: 'Game configuration not found for given organisation/suborganisation.' });
         }
     
@@ -64,11 +62,11 @@ router .get('/overview',authenticateJWT, async (req, res) => {
 
     res.json({type:'success',
      step, 
-    "correctValueBuddies":(assets?.choosenValueBuddies),
-    "tokens":(assets?.tokens),
-    "valueBuddies":(assets?.valueBuddies),
-    "gatePositions":(assets?.gatePositions),
-    "karmaPostions":(assets?.karmaPostions),
+    "correctValueBuddies":(gameConfiguration?.choosenValueBuddies),
+    "tokens":(gameConfiguration?.tokens),
+    "valueBuddies":(gameConfiguration?.valueBuddies),
+    "gatePositions":(gameConfiguration?.gatePositions),
+    "karmaPostions":(gameConfiguration?.karmaPostions),
     "name":user.name,
     "username":user.username,
     "email":user.email,
@@ -175,7 +173,8 @@ router.post('/login', async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: '1d' } // Set expiry to 1 day
       );
-  
+
+     const log = await db.Logs.create({UserId:user.id});
       // Send JWT token as response
       res.json({type:'success', message: 'Login successful', token });
     } catch (error) {

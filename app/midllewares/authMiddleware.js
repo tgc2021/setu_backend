@@ -51,17 +51,25 @@ decodeTokenMiddleware :(socket, next) => {
 
 checkSuborgExists :async (req, res, next) => {
  
-  const { suborgId } = req.body;
+  let { suborgId } =req.body
+ if(!suborgId){
+  suborgId=req.query.suborgId;
+ }
   if(!suborgId){
     return res.status(400).send({ error: 'suborgId cantbe empty!' });
   }
+  try{
   const suborg = await db.Suborganisation.findByPk(suborgId);
-
   if (!suborg) {
     return res.status(404).send({ error: 'SuborgId does not exist.' });
   }
-
   next();
+  }catch(e){
+    return res.status(404).send({ error: e });
+  }
+  
+
+
 }
 
 }

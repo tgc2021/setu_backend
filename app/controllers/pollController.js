@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
-const { Op } = require('sequelize');
 const { checkSuborgExists, authenticateJWT } = require('../midllewares/authMiddleware');
 
 
@@ -53,92 +52,201 @@ router.post('/createQuestions', checkSuborgExists, async (req, res) => {
           if (uniqueOptions.size !== options.length) {
               return res.status(400).json({ message: 'All options within each question must be unique.' });
           }
-      }
+        }
 
-      let createData= questions.map(q=>{
-        let obj={};
-        obj['question']=q.question;
-        obj['options']=q.options;
-        obj['SuborganisationId']=suborgId;
-        return obj
-       })
+  // await db.PollQuestion.bulkCreate(createData);
 
+      // Create questions
+      let createdQuestions = await db.PollQuestion.bulkCreate(
+        questions.map(q => ({
+          question: q.question,
+          SuborganisationId: suborgId
+        })),
+        { returning: true } // This ensures that the created questions are returned with their IDs
+      );
+  
+      // Extract question IDs
+      const questionIds = createdQuestions?.map(q => q.id);
+  
+      // Create options using the question IDs
+      let createOptions = [];
+      questionIds.forEach((questionId, index) => {
+        questions[index].options.forEach(option => {
+          createOptions.push({
+            option: option,
+            PollQuestionId: questionId,
+            SuborganisationId: suborgId
+          });
+        });
+      });
+  
+      // Bulk create options
+      await db.PollOption.bulkCreate(createOptions);
 
-  await db.PollQuestion.bulkCreate(createData);
-
-  res.status(200).send({ message: 'Poll Questions addded successfully.' });
+  res.status(200).send({ message: 'Poll Questions and options addded successfully.' });
 });
 
 // Update a specific question by id and suborgId
-router.patch('/updateQuestion', checkSuborgExists, async (req, res) => {
+// router.patch('/updateQuestion', checkSuborgExists, async (req, res) => {
 
-  const {questionId,suborgId, questionData } = req.body;
-  if(!questionId){
-    return res.status(400).send({ error: 'questionId cantbe empty!' });
-  }
+//   const {questionId,suborgId, questionData } = req.body;
+//   if(!questionId){
+//     return res.status(400).send({ error: 'questionId cantbe empty!' });
+//   }
   
-  if(!questionData || questionData && !questionData?.question || questionData&& !questionData?.options){
-    return res.status(400).send({ error: ' question must contain updated question or options!' });
+//   if(!questionData || questionData && !questionData?.question || questionData&& !questionData?.options){
+//     return res.status(400).send({ error: ' question must contain updated question or options!' });
+//   }
+
+//   const existingQuestions = await db.PollQuestion.findAll({
+//     where: {
+//     SuborganisationId:suborgId,
+//         question: questionData?.question    
+//     }
+//     });
+
+//     if (existingQuestions.length > 0) {
+//     return res.status(400).send({ message:"question: "+ questionData?.question+' already exist for the given suborgId.' });
+//     }
+//     if(questionData?.options){
+//     if (questionData?.options &&( !Array.isArray(questionData.options) || questionData.options.some(option => !option || option.trim() === '' ))) {
+//       return res.status(400).json({ message: 'Options array for question: ' + questionData.question + ' must contain non-empty options!' });
+//    }
+  
+
+//    if (questionData?.options &&(questionData.options.length<2||questionData.options.length>6)) {
+//     return res.status(400).json({ message: 'Options array for question: ' + questionData.question + ' must contain atleast 2 and atmost 5 non-empty options!' });
+//    }
+  
+//       const options = questionData?.options.map(option => option);
+//       const uniqueOptions = new Set(options);
+//       if (uniqueOptions.size !== options.length) {
+//           return res.status(400).json({ message: 'All options within each question must be unique.' });
+//       }
+//    }
+
+//   const result = await db.PollQuestion.update(
+//     { question:questionData?.question ,options:questionData?.options },
+//     { where: { id:questionId, SuborganisationId: suborgId } }
+//   );
+
+//   if (result[0] === 0) {
+//     return res.status(404).send({ error: 'Question not found or suborgId mismatch.' });
+//   }
+
+//   res.status(200).send({ message: 'Poll Question updated successfully.' });
+// });
+// Update a specific question by id and suborgId
+router.patch('/updateQuestion', checkSuborgExists, async (req, res) => {
+  const {  suborgId, questionData } = req.body;
+
+  try {
+    // Validate inputs
+    if (!questionData || !questionData.question && !questionData.options ) {
+      return res.status(400).send({ error: 'questionData must contain questionId and updated question or updated options!' });
+    }
+
+
+    if (!questionData?.questionId) {
+      return res.status(400).send({ error: 'questionId cannot be empty!' });
+    }
+
+   
+    // Check if updated question already exists for the given suborgId
+    const existingQuestion = await db.PollQuestion.findOne({
+      where: {
+        id: questionData?.questionId,
+        SuborganisationId: suborgId
+      }
+    });
+
+    if (!existingQuestion) {
+      return res.status(404).send({ error: 'Question not found or suborgId mismatch.' });
+    }
+
+    if ( questionData?.question && existingQuestion.question !== questionData.question) {
+      const duplicateQuestion = await db.PollQuestion.findOne({
+        where: {
+          SuborganisationId: suborgId,
+          question: questionData.question
+        }
+      });
+
+      if (duplicateQuestion) {
+        return res.status(400).send({ message: `Question "${questionData.question}" already exists for the given suborgId.` });
+      }
+    }
+
+    if(questionData.options){
+    // Validate options array
+    if (!Array.isArray(questionData.options) || questionData.options.length < 2 || questionData.options.length > 6) {
+      return res.status(400).send({ message: 'Options array must contain between 2 and 6 non-empty options.' });
+    }
+
+    const uniqueOptions = new Set(questionData.options);
+    if (uniqueOptions.size !== questionData.options.length) {
+      return res.status(400).send({ message: 'All options within the question must be unique.' });
+    }
   }
 
-  const existingQuestions = await db.PollQuestion.findAll({
-    where: {
-    SuborganisationId:suborgId,
-        question: questionData?.question    
+    // Update the question and its options
+    await db.sequelize.transaction(async (t) => {
+      if( questionData.question){
+      // Update question
+      await db.PollQuestion.update(
+        { question: questionData.question },
+        { where: { id:  questionData.questionId, SuborganisationId: suborgId }, transaction: t }
+      );
+    }
+    if(questionData.options){
+
+      // Delete existing options
+      await db.PollOption.destroy({
+        where: { PollQuestionId: questionId, SuborganisationId: suborgId },
+        transaction: t
+      });
+
+      // Create new options
+      const createOptions = questionData.options.map(option => ({
+        option,
+        PollQuestionId: questionId,
+        SuborganisationId: suborgId
+      }));
+
+      await db.PollOption.bulkCreate(createOptions, { transaction: t });
     }
     });
 
-    if (existingQuestions.length > 0) {
-    return res.status(400).send({ message:"question: "+ questionData?.question+' already exist for the given suborgId.' });
-    }
-    if(questionData?.options){
-    if (questionData?.options &&( !Array.isArray(questionData.options) || questionData.options.some(option => !option || option.trim() === '' ))) {
-      return res.status(400).json({ message: 'Options array for question: ' + questionData.question + ' must contain non-empty options!' });
-   }
-  
-
-   if (questionData?.options &&(questionData.options.length<2||questionData.options.length>6)) {
-    return res.status(400).json({ message: 'Options array for question: ' + questionData.question + ' must contain atleast 2 and atmost 5 non-empty options!' });
-   }
-  
-      const options = questionData?.options.map(option => option);
-      const uniqueOptions = new Set(options);
-      if (uniqueOptions.size !== options.length) {
-          return res.status(400).json({ message: 'All options within each question must be unique.' });
-      }
-   }
-
-  const result = await db.PollQuestion.update(
-    { question:questionData?.question ,options:questionData?.options },
-    { where: { id:questionId, SuborganisationId: suborgId } }
-  );
-
-  if (result[0] === 0) {
-    return res.status(404).send({ error: 'Question not found or suborgId mismatch.' });
+    res.status(200).send({ message: 'Poll Question updated successfully.' });
+  } catch (error) {
+    console.error('Error updating question:', error);
+    res.status(500).send({ error: 'Failed to update question.' });
   }
-
-  res.status(200).send({ message: 'Poll Question updated successfully.' });
 });
+
 
 // Delete a specific question by id and suborgId
 router.delete('/deleteQuestion', checkSuborgExists, async (req, res) => {
   const { questionId, suborgId } = req.body;
 
-  const result = await db.PollQuestion.destroy({ where: { id:questionId, SuborganisationId:suborgId } });
+  const result = await PollQuestion.destroy({
+    where: { id: questionId, SuborganisationId: suborgId },
+    include: [PollOption] // Include related options to delete them
+  });
 
   if (result === 0) {
     return res.status(404).send({ error: 'Question not found or suborgId mismatch.' });
   }
 
-  res.status(200).send({ message: 'Poll Question deleted successfully.' });
+  res.status(200).send({ message: 'Poll Question and options deleted successfully.' });
 });
 
 // Store feedback response
 router.post('/saveResponse',authenticateJWT, async (req, res) => {
   const { suborgId, gameId, response } = req.body;
   const userId=req.user.id
-  if (!Array.isArray(response) || response.some(r => !r.questionId ||  !r?.question|| !r?.option )) {
-    return res.status(400).send({ error: 'Response must be an array of objects with questionId , question and option.' });
+  if (!Array.isArray(response) || response.some(r => !r.questionId ||  !r?.optionId )) {
+    return res.status(400).send({ error: 'Response must be an array of objects with questionId and optionId.' });
   }
 
   // Prepare feedback responses
@@ -147,7 +255,7 @@ router.post('/saveResponse',authenticateJWT, async (req, res) => {
     UserId:userId,
     GameId:gameId,
     PollQuestionId: r.questionId,
-    response: JSON.stringify({question:r.question,option:r.option}),
+    PollOptionId: r.optionId
 
   }));
 
@@ -171,10 +279,24 @@ router.post('/saveResponse',authenticateJWT, async (req, res) => {
 router.get('/questions', authenticateJWT, async (req, res) => {
     const { suborgId } = req.query;
   
-    const pollQuestions = await db.PollQuestion.findAll({
-      where: { SuborganisationId:suborgId },
-      attributes: ['id', 'question', 'options']
+    const questions = await db.PollQuestion.findAll({
+      where: { SuborganisationId: suborgId },
+      attributes: ['id', 'question'],
+      include: [{
+        model: db.PollOption,
+        attributes: ['id', 'option']
+      }]
     });
+    
+    // Format the result
+    const pollQuestions = questions.map(q => ({
+      id: q.id,
+      question: q.question,
+      options: q.PollOptions.map(o => ({
+        id: o.id,
+        option: o.option
+      }))
+    }));
   
     res.status(200).send(pollQuestions);
   });
@@ -188,7 +310,7 @@ router.get('/questions', authenticateJWT, async (req, res) => {
     });
   
     const formattedResponses = pollResponses.map(poll => ({
-      response: JSON.parse(poll?.response),
+      response: poll?.optionId,
       GameId:poll?.GameId
     }));
   

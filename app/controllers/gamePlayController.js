@@ -138,7 +138,7 @@ module.exports = function(io) {
 
 
   router.post('/valuebuddy-check', async (req, res) => {
-    const { gameId } = req.body;
+    const { gameId, isChoosenCorrect } = req.body;
     const userId=req.user.id;
     try {
       // Find the relevant game state entry by gameId and userId
@@ -149,11 +149,28 @@ module.exports = function(io) {
       if (!gameState) {
         return res.status(404).json({ error: 'Game state not found' });
       }
-  
+
+      let count = await db.SelectValueBuddy.count({
+        where: { GameId: gameId, UserId: userId }
+      });
+        count+=1;
+   const createData={
+    attempt:`attempt-${count}`,
+    isChoosenCorrect: isChoosenCorrect,
+    GameId: gameId,
+     UserId: userId,
+     SuborganisationId:req.user.SuborganisationId
+
+  }
+     const selectValueBuddy= await db.SelectValueBuddy.create(createData);
+
+    if(isChoosenCorrect){
       // Update the isValueBuddySelected field to true
       await gameState.update({ isValueBuddySelected: true, step:3 });
-  
       res.json({ success: true });
+    }
+    res.json({success: false});
+     
     } catch (error) {
       console.error('Error updating game state:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -162,10 +179,10 @@ module.exports = function(io) {
 
   async function handleRollDice(gameId,userId,diceValue,suborgId,isGateReached,movePositionTo,isCorrect){
 
-    const assets = await db.Assets.findOne({where:{SuborganisationId:suborgId}});
+    const gameConfiguration = await db.GameConfiguration.findOne({where:{SuborganisationId:suborgId}});
 
-    const gatePositions=assets?.gatePositions??[]
-    const karmaPositions=assets?.karmaPositions??[]
+    const gatePositions=gameConfiguration?.gatePositions??[]
+    const karmaPositions=gameConfiguration?.karmaPositions??[]
     
     //    // Find the current game state for the user
        let gameState = await db.GameState.findOne({ where: { gameId, userId } });
@@ -220,7 +237,7 @@ module.exports = function(io) {
     for (let i = 0; i < gatePositions.length; i++) {
       if (lastReachedPosition >= gatePositions[i] ) {
         crossedGatePosition = gatePositions[i];
-         index=i;
+         index=i+1;
 
       }else{
         break;
@@ -307,14 +324,17 @@ if(isCorrect || movePositionTo==-1){
     try {
       // Perform the query
       const valueBuddyQuestion = await db.ValueBuddyQuestion.findOne({
-        where: { SuborganisationId: suborgId },
+        where: { SuborganisationId: suborgId ,gateNumber:index},
       });
-      if(valueBuddyQuestion.questions){
-      let questions=JSON.parse(valueBuddyQuestion.questions);
+      if(valueBuddyQuestion){
+        const valueBuddyOptions = await db.ValueBuddyOption.findAll({
+          where: {ValueBuddyQuestionId:valueBuddyQuestion.id},
+        });
       question={
-      id:index,
-      question:questions[index]?.question,
-      options:questions[index]?.options?.map(ele=>ele.option)
+      id:valueBuddyQuestion.id,
+      question:valueBuddyQuestion?.question,
+      index:index-1,
+      options:valueBuddyOptions?.map(ele=>({id:ele.id,option:ele.option}))
     }
     }
 
@@ -389,7 +409,7 @@ if(isCorrect || movePositionTo==-1){
     });
   
 
-    socket.on('handle-valuebuddy-question',async ({gameId,questionId,selectedOption})=>{
+ socket.on('handle-valuebuddy-question',async ({gameId,questionId,optionId})=>{
  //check the option value add it lastreachdPosition and update lastCrossedGatePositon
  try {
 
@@ -397,21 +417,38 @@ if(isCorrect || movePositionTo==-1){
   const suborgId=socket.user.SuborganisationId;
 
   const valueBuddyQuestion = await db.ValueBuddyQuestion.findOne({
-    where: { SuborganisationId: suborgId },
+    where: { SuborganisationId: suborgId ,id:questionId},
   });
-
-  let questions=JSON.parse(valueBuddyQuestion.questions);
-  const options=questions[questionId]?.options;
-  const value=options[selectedOption]?.value;
+  const valueBuddyOption = await db.ValueBuddyOption.findOne({
+    where: { id:optionId,ValueBuddyQuestionId:questionId},
+  });
+ 
+  await db.ValueBuddyResponse.create({
+    ValueBuddyQuestionId:questionId,
+    ValueBuddyOptionId:optionId,
+    SuborganisationId: suborgId,
+    GameId:gameId,
+    UserId:userId
+  })
+ 
+  const value=valueBuddyOption?.value;
   const isCorrect=value<0?false:true;
-  const movePositionTo=isCorrect?options[selectedOption]?.movePositionBy:options[selectedOption]?.movePositionTo;
+  const movePositionTo=valueBuddyOption?.movePosition
+  const metaInfo=valueBuddyOption?.metaInfo;
  
-  const metaInfo=options[selectedOption]?.metaInfo;
+  const {diceResult,
+        from,lastReachedPosition,question,
+        noOfKarmas,totalScore,karmaFlag,
+        addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo,isCorrect);
  
-      const {diceResult,from,lastReachedPosition,question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}=await handleRollDice(gameId,userId,value, suborgId,true,movePositionTo,isCorrect);
-      io.to(gameId).emit('dice-rolled', { gameId,from,lastReachedPosition,noOfKarmas,question, 
-        choosenOptionResult:{optionId:selectedOption,isCorrect,metaInfo} ,
-        totalScore,karmaFlag,addedKarmas,removedKarmas});
+ 
+    io.to(gameId).emit('dice-rolled', { 
+        gameId,from,lastReachedPosition,noOfKarmas,question, 
+        choosenOptionResult:{optionId,isCorrect,metaInfo} ,
+        totalScore,karmaFlag,addedKarmas,removedKarmas
+      });
+
+
     } catch (error) {
       console.error('Error handling valuebuddy question:', error);
     }

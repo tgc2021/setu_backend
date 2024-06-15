@@ -105,19 +105,24 @@ router.post('/saveResponse',authenticateJWT, async (req, res) => {
   const { suborgId, gameId, response } = req.body;
   const userId=req.user.id
 
-  if (!Array.isArray(response) || response.some(r => !r.questionId || !r.feedback || typeof r.feedback !== 'object'|| !r?.question)) {
-    return res.status(400).send({ error: 'Response must be an array of objects with questionId and feedback(question and value buddy feedback).' });
+  if (!Array.isArray(response) || response.some(r => !r.questionId || !r.feedback || typeof r.feedback !== 'object')) {
+    return res.status(400).send({ error: 'Response must be an array of objects with questionId and feedback( value buddy and feedback).' });
   }
 
   // Prepare feedback responses
-  const feedbackResponses = response.map(r => ({
+  const feedbackResponses = []
+  response.forEach(r => {
+   let obj= r.feedback.map(feedback=>( {
     SuborganisationId:suborgId,
     UserId:userId,
     GameId:gameId,
     FeedbackQuestionId: r.questionId,
-    response:JSON.stringify(r.feedback),
+    valueBuddy:feedback.valueBuddy,
+    response:feedback.response,
 
-  }));
+  }))
+feedbackResponses.push(...obj)
+});
 
  
   // Insert feedback responses
@@ -154,7 +159,9 @@ router.get('/questions',authenticateJWT, async (req, res) => {
         });
       
         const formattedResponses = feedbackResponses.map(feedback => ({
-          feedback:JSON.parse(feedback?.response),
+          feedback:feedback?.response,
+          userId:feedback?.UserId,
+          valueBuddy:feedback?.valueBuddy,
           GameId:feedback?.GameId
         }));
       

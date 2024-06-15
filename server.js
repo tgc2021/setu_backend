@@ -9,6 +9,7 @@ const fs = require('fs');
 const app = express();
 const socketIo =  require('socket.io');
 const { decodeTokenMiddleware } = require("./app/midllewares/authMiddleware");
+const path = require('path');
 
 
 // dynamic cors
@@ -84,7 +85,19 @@ const io = socketIo(server,{
 io.use(decodeTokenMiddleware);
 
 
+app.get('/uploads/:suborgId/:imageName', (req, res) => {
+  const imageName = req.params.imageName;
+  const suborgId=req.params.suborgId;
+  const imagePath = path.join(__dirname, 'uploads',suborgId ,imageName);
 
+  // Check if file exists
+  if (fs.existsSync(imagePath)) {
+    // Stream the file to the client
+    res.sendFile(imagePath);
+  } else {
+    res.status(404).send('Image not found');
+  }
+});
 
 // simple route
 app.get("/", (req, res) => {

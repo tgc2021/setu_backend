@@ -117,31 +117,51 @@ const FeedbackQuestion = sequelize.define('FeedbackQuestion', {
 
 // Define FeedbackResponse model
 const FeedbackResponse = sequelize.define('FeedbackResponse', {
-  response: DataTypes.TEXT
+  response: DataTypes.STRING,
+  valueBuddy: DataTypes.STRING
 });
 
 // Define PollQuestion model
 const PollQuestion = sequelize.define('PollQuestion', {
   question: DataTypes.STRING,
-  options:{
-    type:  DataTypes.JSON,
-  }
+});
+
+// Define PollOption model
+const PollOption = sequelize.define('PollOption', {
+  option: DataTypes.STRING,
+
 });
 
 // Define PollResponse model
 const PollResponse = sequelize.define('PollResponse', {
-  response: DataTypes.TEXT 
+
 });
 
 // Define ValueBuddyQuestions model
 const ValueBuddyQuestion = sequelize.define('ValueBuddyQuestion', {
-  questions: DataTypes.TEXT,
+  question: DataTypes.STRING,
+  gateNumber:DataTypes.INTEGER
 });
 
-// Define Assets model
-const Assets = sequelize.define('Assets', {
+const ValueBuddyOption = sequelize.define('ValueBuddyOption', {
+  option: DataTypes.STRING,
+  value:DataTypes.INTEGER,
+  metaInfo:DataTypes.STRING,
+  movePosition:DataTypes.INTEGER
 
-choosenValueBuddies: {
+});
+
+const ValueBuddyResponse = sequelize.define('ValueBuddyResponse', {
+
+ });
+
+const SelectValueBuddy = sequelize.define('SelectValueBuddy', {
+ attempt:DataTypes.STRING,
+ isChoosenCorrect:DataTypes.BOOLEAN
+});
+
+const GameConfiguration=sequelize.define('GameConfiguration',{
+  choosenValueBuddies: {
   type: DataTypes.JSON, // Define valuebuddies as an array of integers
 
 },
@@ -163,10 +183,38 @@ valueBuddies: {
   type: DataTypes.JSON, // Define valuebuddies as an array of integers
 
 },
+})
 
+// Define Assets model
+const Assets = sequelize.define('Assets', {
 
+logo:DataTypes.STRING,
+introImg1:DataTypes.STRING,
+introImg2:DataTypes.STRING,
+introImg3:DataTypes.STRING,
+introImg4:DataTypes.STRING,
+introImg5:DataTypes.STRING,
+introImg6:DataTypes.STRING,
+introImg7:DataTypes.STRING,
+introImg8:DataTypes.STRING,
+introImg9:DataTypes.STRING,
+introImg10:DataTypes.STRING,
+introImg11:DataTypes.STRING,
+introImg12:DataTypes.STRING,
+introImg13:DataTypes.STRING,
+introImg14:DataTypes.STRING,
+introImg15:DataTypes.STRING,
+signature:DataTypes.STRING
 });
 
+const Logs = sequelize.define('Logs', {
+
+  loggedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW, // Set default value to current timestamp
+    allowNull: false,
+  },
+});
 // Define Otp model
 
 const Otp = sequelize.define('Otp', {
@@ -191,11 +239,23 @@ User.hasMany(Game);
 Game.belongsTo(Suborganisation);
 Suborganisation.hasMany(Game);
 
+
+
+
 GameState.belongsTo(User);
 User.hasMany(GameState);
 
 GameState.belongsTo(Game);
 Game.hasMany(GameState);
+
+SelectValueBuddy.belongsTo(User)
+User.hasMany(SelectValueBuddy)
+
+SelectValueBuddy.belongsTo(Game)
+Game.hasMany(SelectValueBuddy)
+
+SelectValueBuddy.belongsTo(Suborganisation);
+Suborganisation.hasMany(SelectValueBuddy);
 
 FeedbackQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(FeedbackQuestion);
@@ -215,8 +275,18 @@ Suborganisation.hasMany(FeedbackResponse);
 PollQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(PollQuestion);
 
+
+PollQuestion.hasMany(PollOption,{ onDelete: 'CASCADE', hooks: true });
+PollOption.belongsTo(PollQuestion);
+
+PollOption.belongsTo(Suborganisation)
+Suborganisation.hasMany(PollOption)
+
 PollResponse.belongsTo(PollQuestion);
 PollQuestion.hasMany(PollResponse);
+
+PollResponse.belongsTo(PollOption);
+PollOption.hasMany(PollResponse)
 
 PollResponse.belongsTo(User);
 User.hasMany(PollResponse);
@@ -231,23 +301,49 @@ Suborganisation.hasMany(PollResponse);
 ValueBuddyQuestion.belongsTo(Suborganisation);
 Suborganisation.hasMany(ValueBuddyQuestion);
 
-Assets.belongsTo(Suborganisation)
+ValueBuddyOption.belongsTo(ValueBuddyQuestion)
+ValueBuddyQuestion.hasMany(ValueBuddyOption,{ onDelete: 'CASCADE', hooks: true })
+
+ValueBuddyResponse.belongsTo(ValueBuddyQuestion)
+ValueBuddyQuestion.hasMany(ValueBuddyResponse)
+
+ValueBuddyResponse.belongsTo(ValueBuddyOption)
+ValueBuddyOption.hasMany(ValueBuddyResponse)
+
+ValueBuddyResponse.belongsTo(Game);
+Game.hasMany(ValueBuddyResponse);
+
+ValueBuddyResponse.belongsTo(User);
+User.hasMany(ValueBuddyResponse);
+
+ValueBuddyResponse.belongsTo(Suborganisation);
+Suborganisation.hasMany(ValueBuddyResponse);
 
 
+Assets.belongsTo(Suborganisation);
 
+GameConfiguration.belongsTo(Suborganisation);
+
+Logs.belongsTo(User)
+User.hasMany(Logs)
 
 db.Organisation=Organisation;
 db.Suborganisation=Suborganisation;
 db.User=User;
 db.Game=Game;
+db.SelectValueBuddy=SelectValueBuddy;
 db.GameState=GameState;
 db.FeedbackQuestion=FeedbackQuestion;
 db.FeedbackResponse=FeedbackResponse;
 db.PollQuestion=PollQuestion;
+db.PollOption=PollOption
 db.PollResponse=PollResponse;
 db.ValueBuddyQuestion=ValueBuddyQuestion;
+db.ValueBuddyOption=ValueBuddyOption;
+db.ValueBuddyResponse=ValueBuddyResponse;
 db.Assets=Assets;
+db.GameConfiguration=GameConfiguration;
 db.Otp=Otp;
-
+db.Logs=Logs
 
 module.exports = db;
