@@ -216,19 +216,34 @@ router.post('/utils', upload.any(), async (req, res) => {
 });
 
 // Delete asset
-router.delete('/assets', async (req, res) => {
-    const { SuborgnisationId, columnName } = req.query;
+router.delete('/delete', async (req, res) => {
+    const { suborgId,files,table} = req.query;
+    const tables=['IntroAssets',"TokenAssets","ValueBuddyAssets","DiceAssets","GameAssets","FeedBackAssets","SettingAssets","UtilAssets"]
+ 
+    if(!table){
+        return res.status(400).send({ error: 'table cantbe empty!' });
+    }
+    if(!files){
+        return res.status(400).send({ error: 'files cantbe empty!' });
+    }
+    if(!tables.includes(table)){
+        return res.status(400).send({ error: 'table not found!' });
+    }
+    const columnNames=files.split(",");
 
     try {
-        const asset = await db.Assets.findOne({ where: { suborgnisationId: SuborgnisationId } });
+        const asset = await db[table].findOne({ where: { SuborganisationId: suborgId } });
+        for(const columnName of columnNames){
         if (asset && asset[columnName]) {
             fs.unlinkSync(asset[columnName]);  // Delete the file from the server
             asset[columnName] = null;
-            await asset.save();
-            res.json({ message: 'Asset deleted successfully', asset });
         } else {
             res.status(404).json({ error: 'Asset or file not found' });
         }
+    }
+    await asset.save();
+    res.json({ message: 'Assets deleted successfully', asset });
+ 
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

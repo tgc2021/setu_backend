@@ -86,14 +86,17 @@ router.get('/check', async (req, res) => {
       // }
   const removedColumn=["id","createdAt","updatedAt","SuborgnisationId"];
      const introAssets = [];
+     if(introAssetsData.dataValues){
   for (const key in introAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
       introAssets.push(assets[key]?.replace(/\\/g, '/'));
     }
   }
+}
     
   const tokenIconAssets = [];
   const tokenCardAssets = [];
+  if(tokenAssetsData.dataValues){
   for (const key in tokenAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
       if(key.startsWith("toeknCard"))
@@ -102,20 +105,25 @@ router.get('/check', async (req, res) => {
       tokenIconAssets.push(assets[key]?.replace(/\\/g, '/'));
     }
   }
-      
+}
+
   const valueBuddyAssets = [];
+  if(valueBuddyAssetsData.dataValues){
   for (const key in valueBuddyAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
       valueBuddyAssets.push(assets[key]?.replace(/\\/g, '/'));
     }
   }
+  }
 
   const diceAssets = [];
+  if(diceAsssetsData.dataValues){
   for (const key in diceAsssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
       diceAssets.push(assets[key]?.replace(/\\/g, '/'));
     }
   }
+}
 
 
 
