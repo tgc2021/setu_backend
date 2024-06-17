@@ -80,47 +80,48 @@ router.get('/check', async (req, res) => {
       const valueBuddyAssetsData = await db.ValueBuddyAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const tokenAssetsData = await db.TokenAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const diceAsssetsData = await db.DiceAssets.findOne({where:{SuborganisationId:suborganisation.id}});
-      // if (!assets) {
-      //   return res.status(404).json({ type:'error',message: 'No assets found for the given suborganisation.' });
+      if (!introAssetsData ) {
+        return res.status(404).json({ type:'error',message: 'Assets not found for the given suborganisation.' });
       
-      // }
-  const removedColumn=["id","createdAt","updatedAt","SuborgnisationId"];
+      }
+  const removedColumn=["id","createdAt","updatedAt","SuborganisationId"];
      const introAssets = [];
-     if(introAssetsData.dataValues){
+     if(introAssetsData?.dataValues){
   for (const key in introAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
-      introAssets.push(assets[key]?.replace(/\\/g, '/'));
+      introAssets.push(introAssetsData[key]?.replace(/\\/g, '/'));
+    
     }
   }
 }
     
   const tokenIconAssets = [];
   const tokenCardAssets = [];
-  if(tokenAssetsData.dataValues){
+  if(tokenAssetsData?.dataValues){
   for (const key in tokenAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
-      if(key.startsWith("toeknCard"))
-        tokenCardAssets.push(assets[key]?.replace(/\\/g, '/'));
-    }else if(key.startsWith("toeknIcon")){
-      tokenIconAssets.push(assets[key]?.replace(/\\/g, '/'));
+      if(key.startsWith("tokenCard"))
+        tokenCardAssets.push(tokenAssetsData[key]?.replace(/\\/g, '/'));
+    }else if(key.startsWith("tokenIcon")){
+      tokenIconAssets.push(tokenAssetsData[key]?.replace(/\\/g, '/'));
     }
   }
 }
 
   const valueBuddyAssets = [];
-  if(valueBuddyAssetsData.dataValues){
+  if(valueBuddyAssetsData?.dataValues){
   for (const key in valueBuddyAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
-      valueBuddyAssets.push(assets[key]?.replace(/\\/g, '/'));
+      valueBuddyAssets.push(valueBuddyAssetsData[key]?.replace(/\\/g, '/'));
     }
   }
   }
 
   const diceAssets = [];
-  if(diceAsssetsData.dataValues){
+  if(diceAsssetsData?.dataValues){
   for (const key in diceAsssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
-      diceAssets.push(assets[key]?.replace(/\\/g, '/'));
+      diceAssets.push(diceAsssetsData[key]?.replace(/\\/g, '/'));
     }
   }
 }

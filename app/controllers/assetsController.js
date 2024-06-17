@@ -238,7 +238,7 @@ router.delete('/delete', async (req, res) => {
             fs.unlinkSync(asset[columnName]);  // Delete the file from the server
             asset[columnName] = null;
         } else {
-            res.status(404).json({ error: 'Asset or file not found' });
+           return res.status(404).json({ error: 'Asset or file not found' });
         }
     }
     await asset.save();
