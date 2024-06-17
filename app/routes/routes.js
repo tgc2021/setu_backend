@@ -9,12 +9,12 @@ const gameConfigurationRoutes=require('../controllers/gameConfigurationControlle
 const feedbackRoutes=require('../controllers/feedBackController')
 const pollRoutes=require('../controllers/pollController');
 const valueBuddyRoutes=require('../controllers/valueBuddyController')
-const {authenticateJWT}=require('../midllewares/authMiddleware');
+const {authenticateJWT,checkSuborgExists}=require('../midllewares/authMiddleware');
 
 
 
 module.exports = function(io) {
-router.use('/assets',assetsRoutes);
+router.use('/assets',checkSuborgExists,assetsRoutes);
 router.use('/gameConfiguration',gameConfigurationRoutes);
 router.use('/valueBuddy',valueBuddyRoutes);
 router.use('/organisation',organisationRoutes);

@@ -76,20 +76,57 @@ router.get('/check', async (req, res) => {
       const configuredAuth=(suborganisation.authByEmail && suborganisation.authByPhone)?'Both':
       suborganisation.authByEmail?"Email":suborganisation.authByPhone?"Phone":null;
 
-      const assets = await db.Assets.findOne({where:{SuborganisationId:suborganisation.id}});
-      if (!assets) {
-        return res.status(404).json({ type:'error',message: 'No assets found for the given suborganisation.' });
+      const introAssetsData = await db.IntroAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const valueBuddyAssetsData = await db.ValueBuddyAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const tokenAssetsData = await db.TokenAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const diceAsssetsData = await db.DiceAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      // if (!assets) {
+      //   return res.status(404).json({ type:'error',message: 'No assets found for the given suborganisation.' });
       
-      }
-      console.log(assets,suborganisation)
-      const introAssets = [];
-  for (const key in assets.dataValues) {
-    if (key.startsWith("introImg")) {
+      // }
+  const removedColumn=["id","createdAt","updatedAt","SuborgnisationId"];
+     const introAssets = [];
+  for (const key in introAssetsData.dataValues) {
+    if (!removedColumn.includes(key)) {
       introAssets.push(assets[key]?.replace(/\\/g, '/'));
     }
   }
+    
+  const tokenIconAssets = [];
+  const tokenCardAssets = [];
+  for (const key in tokenAssetsData.dataValues) {
+    if (!removedColumn.includes(key)) {
+      if(key.startsWith("toeknCard"))
+        tokenCardAssets.push(assets[key]?.replace(/\\/g, '/'));
+    }else if(key.startsWith("toeknIcon")){
+      tokenIconAssets.push(assets[key]?.replace(/\\/g, '/'));
+    }
+  }
       
-      res.json({id:suborganisation.id, configuredAuth,logo:assets?.logo,signature:assets?.signature,introAssets});
+  const valueBuddyAssets = [];
+  for (const key in valueBuddyAssetsData.dataValues) {
+    if (!removedColumn.includes(key)) {
+      valueBuddyAssets.push(assets[key]?.replace(/\\/g, '/'));
+    }
+  }
+
+  const diceAssets = [];
+  for (const key in diceAsssetsData.dataValues) {
+    if (!removedColumn.includes(key)) {
+      diceAssets.push(assets[key]?.replace(/\\/g, '/'));
+    }
+  }
+
+
+
+      res.json({id:suborganisation.id,
+         configuredAuth,
+         introAssets,
+         tokenIconAssets,
+         tokenCardAssets,
+         valueBuddyAssets,
+         diceAssets
+      });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

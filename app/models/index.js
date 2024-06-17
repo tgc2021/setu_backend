@@ -185,10 +185,35 @@ valueBuddies: {
 },
 })
 
-// Define Assets model
-const Assets = sequelize.define('Assets', {
+// const Assets = sequelize.define('Assets', {
 
+//   logo:DataTypes.STRING,
+//   introImg1:DataTypes.STRING,
+//   introImg2:DataTypes.STRING,
+//   introImg3:DataTypes.STRING,
+//   introImg4:DataTypes.STRING,
+//   introImg5:DataTypes.STRING,
+//   introImg6:DataTypes.STRING,
+//   introImg7:DataTypes.STRING,
+//   introImg8:DataTypes.STRING,
+//   introImg9:DataTypes.STRING,
+//   introImg10:DataTypes.STRING,
+//   introImg11:DataTypes.STRING,
+//   introImg12:DataTypes.STRING,
+//   introImg13:DataTypes.STRING,
+//   introImg14:DataTypes.STRING,
+//   introImg15:DataTypes.STRING,
+//   signature:DataTypes.STRING
+//   });
+  
+
+// Define UtilsAssets model
+const UtilsAssets = sequelize.define('UtilsAssets', {
 logo:DataTypes.STRING,
+signature:DataTypes.STRING,
+});
+
+const IntroAssets=sequelize.define('IntroAssets',{
 introImg1:DataTypes.STRING,
 introImg2:DataTypes.STRING,
 introImg3:DataTypes.STRING,
@@ -204,8 +229,97 @@ introImg12:DataTypes.STRING,
 introImg13:DataTypes.STRING,
 introImg14:DataTypes.STRING,
 introImg15:DataTypes.STRING,
-signature:DataTypes.STRING
-});
+})
+
+const TokenAssets=sequelize.define('TokenAssets',{
+tokenIcon1:DataTypes.STRING,
+tokenIcon2:DataTypes.STRING,
+tokenIcon3:DataTypes.STRING,
+tokenIcon4:DataTypes.STRING,
+tokenIcon5:DataTypes.STRING,
+tokenIcon6:DataTypes.STRING,
+tokenCard1:DataTypes.STRING,
+tokenCard2:DataTypes.STRING,
+tokenCard3:DataTypes.STRING,
+tokenCard4:DataTypes.STRING,
+tokenCard5:DataTypes.STRING,
+tokenCard6:DataTypes.STRING,
+})
+const ValueBuddyAssets=sequelize.define('ValueBuddyAssets',{
+ vb1:DataTypes.STRING,
+vbHappy1:DataTypes.STRING,
+vbSad1:DataTypes.STRING,
+vbThumb1:DataTypes.STRING,
+vb2:DataTypes.STRING,
+vbHappy2:DataTypes.STRING,
+vbSad2:DataTypes.STRING,
+vbThumb2:DataTypes.STRING,
+vb3:DataTypes.STRING,
+vbHappy3:DataTypes.STRING,
+vbSad3:DataTypes.STRING,
+vbThumb3:DataTypes.STRING,
+vb4:DataTypes.STRING,
+vbHappy4:DataTypes.STRING,
+vbSad4:DataTypes.STRING,
+vbThumb4:DataTypes.STRING,
+vb5:DataTypes.STRING,
+vbHappy5:DataTypes.STRING,
+vbSad5:DataTypes.STRING,
+vbThumb5:DataTypes.STRING,
+vb6:DataTypes.STRING,
+vbHappy6:DataTypes.STRING,
+vbSad6:DataTypes.STRING,
+vbThumb6:DataTypes.STRING,
+vb7:DataTypes.STRING,
+vbHappy7:DataTypes.STRING,
+vbSad7:DataTypes.STRING,
+vbThumb7:DataTypes.STRING,
+vb8:DataTypes.STRING,
+vbHappy8:DataTypes.STRING,
+vbSad8:DataTypes.STRING,
+vbThumb8:DataTypes.STRING,
+vb9:DataTypes.STRING,
+vbHappy9:DataTypes.STRING,
+vbSad9:DataTypes.STRING,
+vbThumb9:DataTypes.STRING,
+vb10:DataTypes.STRING,
+vbHappy10:DataTypes.STRING,
+vbSad10:DataTypes.STRING,
+vbThumb10:DataTypes.STRING,
+vb11:DataTypes.STRING,
+vbHappy11:DataTypes.STRING,
+vbSad11:DataTypes.STRING,
+vbThumb11:DataTypes.STRING,
+vb12:DataTypes.STRING,
+vbHappy12:DataTypes.STRING,
+vbSad12:DataTypes.STRING,
+vbThumb12:DataTypes.STRING,
+vb13:DataTypes.STRING,
+vbHappy13:DataTypes.STRING,
+vbSad13:DataTypes.STRING,
+vbThumb13:DataTypes.STRING,
+vb14:DataTypes.STRING,
+vbHappy14:DataTypes.STRING,
+vbSad14:DataTypes.STRING,
+vbThumb14:DataTypes.STRING,
+vb15:DataTypes.STRING,
+vbHappy15:DataTypes.STRING,
+vbSad15:DataTypes.STRING,
+vbThumb15:DataTypes.STRING,
+vb16:DataTypes.STRING,
+vbHappy16:DataTypes.STRING,
+vbSad16:DataTypes.STRING,
+vbThumb16:DataTypes.STRING,
+})
+const DiceAssets=sequelize.define('DiceAssets',{
+dice:DataTypes.STRING,
+dice1:DataTypes.STRING,
+dice2:DataTypes.STRING,
+dice3:DataTypes.STRING,
+dice4:DataTypes.STRING,
+dice5:DataTypes.STRING,
+dice6:DataTypes.STRING,
+})
 
 const Logs = sequelize.define('Logs', {
 
@@ -320,7 +434,11 @@ ValueBuddyResponse.belongsTo(Suborganisation);
 Suborganisation.hasMany(ValueBuddyResponse);
 
 
-Assets.belongsTo(Suborganisation);
+UtilsAssets.belongsTo(Suborganisation);
+IntroAssets.belongsTo(Suborganisation);
+TokenAssets.belongsTo(Suborganisation);
+ValueBuddyAssets.belongsTo(Suborganisation);
+DiceAssets.belongsTo(Suborganisation);
 
 GameConfiguration.belongsTo(Suborganisation);
 
@@ -341,9 +459,14 @@ db.PollResponse=PollResponse;
 db.ValueBuddyQuestion=ValueBuddyQuestion;
 db.ValueBuddyOption=ValueBuddyOption;
 db.ValueBuddyResponse=ValueBuddyResponse;
-db.Assets=Assets;
+db.UtilsAssets=UtilsAssets;
+db.IntroAssets=IntroAssets;
+db.TokenAssets=TokenAssets;
+db.ValueBuddyAssets=ValueBuddyAssets;
+db.DiceAssets=DiceAssets;
 db.GameConfiguration=GameConfiguration;
 db.Otp=Otp;
-db.Logs=Logs
+db.Logs=Logs;
+// db.Assets=Assets;
 
 module.exports = db;
