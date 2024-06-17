@@ -85,10 +85,11 @@ const io = socketIo(server,{
 io.use(decodeTokenMiddleware);
 
 
-app.get('/uploads/:suborgId/:imageName', (req, res) => {
+app.get('/uploads/:suborgId/:folder/:imageName', (req, res) => {
   const imageName = req.params.imageName;
   const suborgId=req.params.suborgId;
-  const imagePath = path.join(__dirname, 'uploads',suborgId ,imageName);
+  const folder=req.params.folder;
+  const imagePath = path.join(__dirname, 'uploads',suborgId ,folder,imageName);
 
   // Check if file exists
   if (fs.existsSync(imagePath)) {
