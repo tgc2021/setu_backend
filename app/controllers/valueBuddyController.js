@@ -105,7 +105,7 @@ router.post('/createQuestions', async (req, res) => {
       // Bulk create options
       await db.ValueBuddyOption.bulkCreate(createOptions);
 
-  res.status(200).send({ message: 'Poll Questions and options addded successfully.' });
+  res.status(200).send({ message: 'Valu buddy Questions and options addded successfully.' });
 
 
     } catch (err) {

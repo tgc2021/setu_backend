@@ -139,7 +139,7 @@ const PollResponse = sequelize.define('PollResponse', {
 
 // Define ValueBuddyQuestions model
 const ValueBuddyQuestion = sequelize.define('ValueBuddyQuestion', {
-  question: DataTypes.STRING,
+  question: DataTypes.STRING(999),
   gateNumber:DataTypes.INTEGER
 });
 
@@ -207,10 +207,41 @@ valueBuddies: {
 //   });
   
 
-// Define UtilsAssets model
-const UtilsAssets = sequelize.define('UtilsAssets', {
-logo:DataTypes.STRING,
+// Define UtilAssets model
+const UtilAssets = sequelize.define('UtilsAssets', {
+setuLogo:DataTypes.STRING,
 signature:DataTypes.STRING,
+nextIcon:DataTypes.STRING,
+prevIcon:DataTypes.STRING,
+skipImg:DataTypes.STRING,
+settingIcon:DataTypes.STRING,
+closeIcon:DataTypes.STRING,
+profileIcon:DataTypes.STRING,
+audioIcon:DataTypes.STRING,
+muteIcon:DataTypes.STRING,
+infoIcon:DataTypes.STRING,
+logoutIcon:DataTypes.STRING,
+userIcon:DataTypes.STRING,
+modalBg:DataTypes.STRING,
+dashboardBg:DataTypes.STRING,
+singlePlayer:DataTypes.STRING,
+multiPlayer:DataTypes.STRING,
+feedbackBg:DataTypes.STRING,
+fbIcon1:DataTypes.STRING,
+fbIcon2:DataTypes.STRING,
+fbIcon3:DataTypes.STRING,
+fbIcon4:DataTypes.STRING,
+fbIcon5:DataTypes.STRING,
+fbIcon6:DataTypes.STRING,
+fbQuestionBg:DataTypes.STRING,
+pollBg:DataTypes.STRING,
+pollQuestionBg:DataTypes.STRING,
+pollOptionBg:DataTypes.STRING,
+certificateImg:DataTypes.STRING,
+downloadIcon:DataTypes.STRING,
+otpSuccess:DataTypes.STRING,
+forgotPassword:DataTypes.STRING,
+updateSuccess:DataTypes.STRING,
 });
 
 const IntroAssets=sequelize.define('IntroAssets',{
@@ -320,6 +351,46 @@ dice4:DataTypes.STRING,
 dice5:DataTypes.STRING,
 dice6:DataTypes.STRING,
 })
+
+const GameAssets=sequelize.define('GameAssets',{
+  gameBg:DataTypes.STRING,
+  gameboardBg:DataTypes.STRING,
+  gateImage:DataTypes.STRING,
+  scoreBoard:DataTypes.STRING,
+  barometer:DataTypes.STRING,
+  decisionImpactHeading:DataTypes.STRING,
+  badgemeter:DataTypes.STRING,
+  karmaHeading:DataTypes.STRING,
+  serpentImg:DataTypes.STRING,
+  magnusImg:DataTypes.STRING,
+  badge1:DataTypes.STRING,
+  badge2:DataTypes.STRING,
+  badge3:DataTypes.STRING,
+  badge4:DataTypes.STRING,
+  badge5:DataTypes.STRING,
+  learningIcon:DataTypes.STRING,
+  companyLogo:DataTypes.STRING,
+  settingsIcon:DataTypes.STRING,
+  setuLogo_white:DataTypes.STRING,
+  tokenBg:DataTypes.STRING,
+  leftPanelBg:DataTypes.STRING,
+  goodGateImg:DataTypes.STRING,
+  badGateImg:DataTypes.STRING,
+  magnusGivingImg:DataTypes.STRING,
+  magnusTakingImg:DataTypes.STRING,
+  goodPathAnimation:DataTypes.STRING,
+  badPathAnimation:DataTypes.STRING,
+  questionBg:DataTypes.STRING,
+  serpentAnimation:DataTypes.STRING,
+  optionBg:DataTypes.STRING,
+  metaInfoBg:DataTypes.STRING,
+  magnusFinalImg:DataTypes.STRING,
+
+});
+
+
+
+
 
 const Logs = sequelize.define('Logs', {
 
@@ -434,11 +505,13 @@ ValueBuddyResponse.belongsTo(Suborganisation);
 Suborganisation.hasMany(ValueBuddyResponse);
 
 
-UtilsAssets.belongsTo(Suborganisation);
+UtilAssets.belongsTo(Suborganisation);
 IntroAssets.belongsTo(Suborganisation);
 TokenAssets.belongsTo(Suborganisation);
 ValueBuddyAssets.belongsTo(Suborganisation);
 DiceAssets.belongsTo(Suborganisation);
+GameAssets.belongsTo(Suborganisation);
+
 
 GameConfiguration.belongsTo(Suborganisation);
 
@@ -459,12 +532,13 @@ db.PollResponse=PollResponse;
 db.ValueBuddyQuestion=ValueBuddyQuestion;
 db.ValueBuddyOption=ValueBuddyOption;
 db.ValueBuddyResponse=ValueBuddyResponse;
-db.UtilsAssets=UtilsAssets;
+db.UtilAssets=UtilAssets;
 db.IntroAssets=IntroAssets;
 db.TokenAssets=TokenAssets;
 db.ValueBuddyAssets=ValueBuddyAssets;
 db.DiceAssets=DiceAssets;
 db.GameConfiguration=GameConfiguration;
+db.GameAssets=GameAssets;
 db.Otp=Otp;
 db.Logs=Logs;
 // db.Assets=Assets;

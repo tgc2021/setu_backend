@@ -79,7 +79,9 @@ router.get('/check', async (req, res) => {
       const introAssetsData = await db.IntroAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const valueBuddyAssetsData = await db.ValueBuddyAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const tokenAssetsData = await db.TokenAssets.findOne({where:{SuborganisationId:suborganisation.id}});
-      const diceAsssetsData = await db.DiceAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const diceAssetsData = await db.DiceAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const gameAssetsData = await db.GameAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const utilAssetsData = await db.UtilAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       if (!introAssetsData ) {
         return res.status(404).json({ type:'error',message: 'Assets not found for the given suborganisation.' });
       
@@ -118,10 +120,10 @@ router.get('/check', async (req, res) => {
   }
 
   const diceAssets = [];
-  if(diceAsssetsData?.dataValues){
-  for (const key in diceAsssetsData.dataValues) {
+  if(diceAssetsData?.dataValues){
+  for (const key in diceAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
-      diceAssets.push(diceAsssetsData[key]?.replace(/\\/g, '/'));
+      diceAssets.push(diceAssetsData[key]?.replace(/\\/g, '/'));
     }
   }
 }
@@ -134,7 +136,9 @@ router.get('/check', async (req, res) => {
          tokenIconAssets,
          tokenCardAssets,
          valueBuddyAssets,
-         diceAssets
+         diceAssets,
+         gameAssets:gameAssetsData,
+         utilAssets:utilAssetsData
       });
     }
   } catch (error) {

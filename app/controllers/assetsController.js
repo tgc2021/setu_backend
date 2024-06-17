@@ -32,7 +32,7 @@ const upload = multer({
         const filetypes = /jpeg|jpg|png|gif|svg/;
         const mimetype = filetypes.test(file.mimetype);
         const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const folders=["intro","tokens","valueBuddy","dice","game","feedback","utils","settings"];
+        const folders=["intro","tokens","valueBuddy","dice","game","util"];
         const url=req.protocol + "://" + req.get('host') + req.originalUrl;
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
@@ -40,7 +40,7 @@ const upload = multer({
         const folderCheck=folders?.includes(lastEndpoint);
 
         if (mimetype && extname && folderCheck) {
-            return cb(null, true);
+            return cb(null, true); 
         } else {
             if(!folderCheck){
                 cb(new Error('please input correct folder destinattion!'));
@@ -86,139 +86,34 @@ const uploadRouteHandler=async (req,res)=>{
 
 // Create or update assets
 router.post('/intro', upload.any(), async (req, res) => {
-       req.query.prefix=["intro"];
        req.query.table="IntroAssets";
        return await uploadRouteHandler(req,res);
 });
 router.post('/valueBuddy', upload.any(), async (req, res) => {
-    req.query.prefix=["vb"];
     req.query.table="ValueBuddyAssets";
     return await uploadRouteHandler(req,res);
 });
 router.post('/tokens', upload.any(), async (req, res) => {
-    req.query.prefix=["token"];
     req.query.table="TokenAssets";
     return await uploadRouteHandler(req,res);
 });
 router.post('/dice', upload.any(), async (req, res) => {
-
-    req.query.prefix=["dice"];
     req.query.table="DiceAssets";
     return await uploadRouteHandler(req,res);
 });
 router.post('/game', upload.any(), async (req, res) => {
-    const { suborgId } = req.query;
-    const files = req.files;
-    const data = {};
-
-    if (files && files.length > 0) {
-        files.forEach(file => {
-            const columnName = file.fieldname;
-            data[columnName] = file.path;
-        });
-    }
-   console.log(req.body,req.files);
-    try {
-        let asset = await db.Assets.findOne({ where: { SuborganisationId: suborgId } });
-        if (asset) {
-            // Update existing asset
-            asset = await asset.update(data);
-            res.json({ message: 'Assets updated successfully', asset });
-        } else {
-            // Create new asset
-            asset = await db.Assets.create({ SuborganisationId:suborgId, ...data });
-            res.json({ message: 'Assets created successfully', asset });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    req.query.table="GameAssets";
+    return await uploadRouteHandler(req,res);
 });
-router.post('/feedback', upload.any(), async (req, res) => {
-    const { suborgId } = req.query;
-    const files = req.files;
-    const data = {};
-
-    if (files && files.length > 0) {
-        files.forEach(file => {
-            const columnName = file.fieldname;
-            data[columnName] = file.path;
-        });
-    }
-   console.log(req.body,req.files);
-    try {
-        let asset = await db.Assets.findOne({ where: { SuborganisationId: suborgId } });
-        if (asset) {
-            // Update existing asset
-            asset = await asset.update(data);
-            res.json({ message: 'Assets updated successfully', asset });
-        } else {
-            // Create new asset
-            asset = await db.Assets.create({ SuborganisationId:suborgId, ...data });
-            res.json({ message: 'Assets created successfully', asset });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-router.post('/settings', upload.any(), async (req, res) => {
-    const { suborgId } = req.query;
-    const files = req.files;
-    const data = {};
-
-    if (files && files.length > 0) {
-        files.forEach(file => {
-            const columnName = file.fieldname;
-            data[columnName] = file.path;
-        });
-    }
-   console.log(req.body,req.files);
-    try {
-        let asset = await db.Assets.findOne({ where: { SuborganisationId: suborgId } });
-        if (asset) {
-            // Update existing asset
-            asset = await asset.update(data);
-            res.json({ message: 'Assets updated successfully', asset });
-        } else {
-            // Create new asset
-            asset = await db.Assets.create({ SuborganisationId:suborgId, ...data });
-            res.json({ message: 'Assets created successfully', asset });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-router.post('/utils', upload.any(), async (req, res) => {
-    const { suborgId } = req.query;
-    const files = req.files;
-    const data = {};
-
-    if (files && files.length > 0) {
-        files.forEach(file => {
-            const columnName = file.fieldname;
-            data[columnName] = file.path;
-        });
-    }
-   console.log(req.body,req.files);
-    try {
-        let asset = await db.Assets.findOne({ where: { SuborganisationId: suborgId } });
-        if (asset) {
-            // Update existing asset
-            asset = await asset.update(data);
-            res.json({ message: 'Assets updated successfully', asset });
-        } else {
-            // Create new asset
-            asset = await db.Assets.create({ SuborganisationId:suborgId, ...data });
-            res.json({ message: 'Assets created successfully', asset });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+router.post('/util', upload.any(), async (req, res) => {
+    req.query.table="UtilAssets";
+    return await uploadRouteHandler(req,res);
 });
 
 // Delete asset
 router.delete('/delete', async (req, res) => {
     const { suborgId,files,table} = req.query;
-    const tables=['IntroAssets',"TokenAssets","ValueBuddyAssets","DiceAssets","GameAssets","FeedBackAssets","SettingAssets","UtilAssets"]
+    const tables=['IntroAssets',"TokenAssets","ValueBuddyAssets","DiceAssets","GameAssets","UtilAssets"]
  
     if(!table){
         return res.status(400).send({ error: 'table cantbe empty!' });
