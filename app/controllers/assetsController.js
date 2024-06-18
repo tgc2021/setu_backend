@@ -29,23 +29,36 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|gif|svg/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        let filetypes = /jpeg|jpg|png|gif|svg/;
+        let mimetypes = [
+            'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml',
+          ];
         const folders=["intro","tokens","valueBuddy","dice","game","util"];
         const url=req.protocol + "://" + req.get('host') + req.originalUrl;
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
         const lastEndpoint = pathSegments[pathSegments.length - 1];
-        const folderCheck=folders?.includes(lastEndpoint);
-
+        let folderCheck=folders?.includes(lastEndpoint);
+        console.log(file.mimetype)
+        if(lastEndpoint=='audio'){
+          filetypes=/mp3|wav|ogg/;
+          folderCheck=true;
+          mimetypes=['audio/mpeg', 'audio/wav', 'audio/ogg']
+        }
+        const mimetype = mimetypes.includes(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        console.log(mimetype,extname,folderCheck,filetypes)
         if (mimetype && extname && folderCheck) {
             return cb(null, true); 
         } else {
             if(!folderCheck){
-                cb(new Error('please input correct folder destinattion!'));
+                cb(new Error('please input correct folder destination!'));
             }else{
+                if(lastEndpoint=='audio'){
+                    cb(new Error('Only audio files are allowed'));
+                }else{
             cb(new Error('Only images are allowed'));
+                }
             }
         }
     }
@@ -106,6 +119,11 @@ router.post('/game', upload.any(), async (req, res) => {
     return await uploadRouteHandler(req,res);
 });
 router.post('/util', upload.any(), async (req, res) => {
+    req.query.table="UtilAssets";
+    return await uploadRouteHandler(req,res);
+});
+
+router.post('/audio', upload.any(), async (req, res) => {
     req.query.table="UtilAssets";
     return await uploadRouteHandler(req,res);
 });

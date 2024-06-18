@@ -54,7 +54,7 @@ router.get('/getAll/:organisationId', async (req, res) => {
 router.get('/check', async (req, res) => {
 
   try {
-    console.log('orgId',req.query.id)
+    //console.log('orgId',req.query.id)
     const suborganisation = await db.Suborganisation.findByPk(req.query.id);
     
     if (suborganisation === null) {

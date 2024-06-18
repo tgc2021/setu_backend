@@ -271,7 +271,7 @@ router.patch('/updatePassword',async (req, res) => {
   
 
      // console.log(otp)
-      if( otp && otp.otpExpireTime < new Date()){
+      if( otp && new Date(otp.otpExpireTime) < new Date()){
         return res.status(400).json({type:'error', message: 'Session expired!' });
       }
   
@@ -439,10 +439,10 @@ const verifyOtp = async (uniqueId, otp,newUser=false) => {
       // Find the user in the database by email
     
       const otpRow = await db.Otp.findOne({ where: { email: uniqueId,type:newUser?"new_user":"existing_user" }, order: [['createdAt', 'DESC']] });
-      //console.log('otp',otpRow)
+      console.log('otp', otpRow.otp ,otp, new Date(otpRow.otpExpireTime)> new Date(),otpRow && otpRow.otp == otp && new Date(otpRow.otpExpireTime) > new Date())
 
       // Check if the user exists and the OTP matches
-      return otpRow && otpRow.otp == otp && otpRow.otpExpireTime > new Date();
+      return otpRow && otpRow.otp == otp && new Date(otpRow.otpExpireTime) > new Date();
     }
   } catch (error) {
     console.error('Error verifying OTP:', error);
@@ -500,12 +500,14 @@ router.post('/verifyOTP', async (req, res) => {
        await db.Otp.create({otp,otpExpireTime:otpExpier,type:"existing_user", email:uniqueId});
       }
      }
+     res.json({type:'success',message:"Otp verified successfully!", verified: isOtpVerified,uniqueId });
 
-
+    }else{
+      res.status(401).json({type:'error',message:"Invalid otp!", verified: isOtpVerified,uniqueId });
     }
     // Send the verification result as response
 
-    res.json({type:'success',message:"Otp verified successfully!", verified: isOtpVerified,uniqueId });
+   
   } catch (error) {
     console.error('Error verifying OTP:', error);
     res.status(500).json({ error: 'Internal server error' });

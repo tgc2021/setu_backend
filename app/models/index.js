@@ -242,6 +242,7 @@ downloadIcon:DataTypes.STRING,
 otpSuccess:DataTypes.STRING,
 forgotPassword:DataTypes.STRING,
 updateSuccess:DataTypes.STRING,
+gameMusic:DataTypes.STRING
 });
 
 const IntroAssets=sequelize.define('IntroAssets',{
