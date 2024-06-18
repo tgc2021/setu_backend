@@ -208,7 +208,7 @@ valueBuddies: {
   
 
 // Define UtilAssets model
-const UtilAssets = sequelize.define('UtilsAssets', {
+const UtilAssets = sequelize.define('UtilAssets', {
 setuLogo:DataTypes.STRING,
 signature:DataTypes.STRING,
 nextIcon:DataTypes.STRING,

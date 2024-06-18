@@ -267,8 +267,10 @@ router.patch('/updatePassword',async (req, res) => {
 
 
       // Check if the user exists and the OTP matches
-      const otp = await db.Otp.findOne({ where: { email: uniqueId } });
+      const otp = await db.Otp.findOne({ where: { email: uniqueId }, order: [['createdAt', 'DESC']] });
+  
 
+     // console.log(otp)
       if( otp && otp.otpExpireTime < new Date()){
         return res.status(400).json({type:'error', message: 'Session expired!' });
       }
@@ -319,7 +321,7 @@ router.patch('/updatePassword',async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000);
 
     const otpExpier = new Date();
-    otpExpier.setSeconds(otpExpier.getSeconds() + 30);
+    otpExpier.setSeconds(otpExpier.getSeconds() + 120);
 
     // Create or Update the user record in the database with the generated OTP and its expiration time
 
@@ -355,7 +357,7 @@ router.patch('/updatePassword',async (req, res) => {
           from:  orgDetails?.email, // Sender's email address
           to: uniqueId, // Recipient's email address
           subject: 'SeTU User Registration OTP for verification', // Email subject
-          text: `Your OTP (It will expire after 30 sec): ${otp}` // Email body
+          text: `Your OTP (It will expire after  2min ): ${otp}` // Email body
         };
   
         // Send email
@@ -435,8 +437,10 @@ const verifyOtp = async (uniqueId, otp,newUser=false) => {
       return otpVerificationResponse.data.type=='success'; // Return true if OTP verification is successful
     } else {
       // Find the user in the database by email
-      const otpRow = await db.Otp.findOne({ where: { email: uniqueId,type:newUser?"new_user":"existing_user" } });
-     console.log(otpRow.otpExpireTime,new Date(),otpRow.otp ,otpRow.otpExpireTime > new Date(),otpRow.otp == otp)
+    
+      const otpRow = await db.Otp.findOne({ where: { email: uniqueId,type:newUser?"new_user":"existing_user" }, order: [['createdAt', 'DESC']] });
+      //console.log('otp',otpRow)
+
       // Check if the user exists and the OTP matches
       return otpRow && otpRow.otp == otp && otpRow.otpExpireTime > new Date();
     }
@@ -469,7 +473,7 @@ router.post('/verifyOTP', async (req, res) => {
     const isOtpVerified = await verifyOtp(uniqueId, otp,false);
     if(isOtpVerified){
       const otpExpier = new Date();
-      otpExpier.setMinutes(otpExpier.getMinutes() + 1);
+      otpExpier.setMinutes(otpExpier.getMinutes() + 5);
        // Update the user record in the database with the generated OTP and its expiration time
        const isPhoneNumber = /^\d+$/.test(uniqueId);
        if(isPhoneNumber){
