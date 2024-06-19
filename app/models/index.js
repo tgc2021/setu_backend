@@ -152,6 +152,7 @@ const ValueBuddyOption = sequelize.define('ValueBuddyOption', {
 });
 
 const ValueBuddyResponse = sequelize.define('ValueBuddyResponse', {
+  attempt:DataTypes.STRING
 
  });
 
@@ -185,29 +186,6 @@ valueBuddies: {
 },
 })
 
-// const Assets = sequelize.define('Assets', {
-
-//   logo:DataTypes.STRING,
-//   introImg1:DataTypes.STRING,
-//   introImg2:DataTypes.STRING,
-//   introImg3:DataTypes.STRING,
-//   introImg4:DataTypes.STRING,
-//   introImg5:DataTypes.STRING,
-//   introImg6:DataTypes.STRING,
-//   introImg7:DataTypes.STRING,
-//   introImg8:DataTypes.STRING,
-//   introImg9:DataTypes.STRING,
-//   introImg10:DataTypes.STRING,
-//   introImg11:DataTypes.STRING,
-//   introImg12:DataTypes.STRING,
-//   introImg13:DataTypes.STRING,
-//   introImg14:DataTypes.STRING,
-//   introImg15:DataTypes.STRING,
-//   signature:DataTypes.STRING
-//   });
-  
-
-// Define UtilAssets model
 const UtilAssets = sequelize.define('UtilAssets', {
 setuLogo:DataTypes.STRING,
 signature:DataTypes.STRING,
@@ -242,7 +220,15 @@ downloadIcon:DataTypes.STRING,
 otpSuccess:DataTypes.STRING,
 forgotPassword:DataTypes.STRING,
 updateSuccess:DataTypes.STRING,
-gameMusic:DataTypes.STRING
+gameMusic:DataTypes.STRING,
+diceRollSound:DataTypes.STRING,
+tokenSound:DataTypes.STRING,
+gateOpenSound:DataTypes.STRING,
+wonPointSound:DataTypes.STRING,
+lostPointSound:DataTypes.STRING,
+snakeSound:DataTypes.STRING,
+gameFinish:DataTypes.STRING,
+
 });
 
 const IntroAssets=sequelize.define('IntroAssets',{
@@ -516,7 +502,9 @@ GameAssets.belongsTo(Suborganisation);
 
 GameConfiguration.belongsTo(Suborganisation);
 
-Logs.belongsTo(User)
+Logs.belongsTo(User);
+Logs.belongsTo(Suborganisation);
+
 User.hasMany(Logs)
 
 db.Organisation=Organisation;

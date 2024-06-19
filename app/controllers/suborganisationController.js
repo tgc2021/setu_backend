@@ -102,11 +102,12 @@ router.get('/check', async (req, res) => {
   if(tokenAssetsData?.dataValues){
   for (const key in tokenAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
-      if(key.startsWith("tokenCard"))
+      if(key.startsWith("tokenCard")){
         tokenCardAssets.push(tokenAssetsData[key]?.replace(/\\/g, '/'));
     }else if(key.startsWith("tokenIcon")){
       tokenIconAssets.push(tokenAssetsData[key]?.replace(/\\/g, '/'));
     }
+  }
   }
 }
 
@@ -127,8 +128,23 @@ router.get('/check', async (req, res) => {
     }
   }
 }
+let gameAssets={}
+if (gameAssetsData?.dataValues) {
+  Object.keys(gameAssetsData.dataValues).forEach(key => {
+    if (!removedColumn.includes(key)) {
+    gameAssets[key] =gameAssetsData[key]?.replace(/\\/g, '/');
+    }
+  });
+}
 
-
+let utilAssets={}
+if (utilAssetsData?.dataValues) {
+  Object.keys(utilAssetsData.dataValues).forEach(key => {
+    if (!removedColumn.includes(key)) {
+    utilAssets[key] =utilAssetsData[key]?.replace(/\\/g, '/');
+    }
+  });
+}
 
       res.json({id:suborganisation.id,
          configuredAuth,
@@ -137,8 +153,8 @@ router.get('/check', async (req, res) => {
          tokenCardAssets,
          valueBuddyAssets,
          diceAssets,
-         gameAssets:gameAssetsData,
-         utilAssets:utilAssetsData
+         gameAssets,
+         utilAssets
       });
     }
   } catch (error) {

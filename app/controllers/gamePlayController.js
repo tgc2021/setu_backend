@@ -168,8 +168,9 @@ module.exports = function(io) {
       // Update the isValueBuddySelected field to true
       await gameState.update({ isValueBuddySelected: true, step:3 });
       res.json({ success: true });
-    }
+    }else{
     res.json({success: false});
+    }
      
     } catch (error) {
       console.error('Error updating game state:', error);
@@ -422,13 +423,16 @@ if(isCorrect || movePositionTo==-1){
   const valueBuddyOption = await db.ValueBuddyOption.findOne({
     where: { id:optionId,ValueBuddyQuestionId:questionId},
   });
+
+  const {count}=await db.Game.findAndCountAll({where:{UserId:userId}});
  
   await db.ValueBuddyResponse.create({
     ValueBuddyQuestionId:questionId,
     ValueBuddyOptionId:optionId,
     SuborganisationId: suborgId,
     GameId:gameId,
-    UserId:userId
+    UserId:userId,
+    attempt:`attempt-${count}`
   })
  
   const value=valueBuddyOption?.value;
