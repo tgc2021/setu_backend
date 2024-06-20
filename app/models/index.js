@@ -142,7 +142,8 @@ const PollResponse = sequelize.define('PollResponse', {
 // Define ValueBuddyQuestions model
 const ValueBuddyQuestion = sequelize.define('ValueBuddyQuestion', {
   question: DataTypes.STRING(999),
-  gateNumber:DataTypes.INTEGER
+  gateNumber:DataTypes.INTEGER,
+  valueBuddy:DataTypes.STRING
 });
 
 const ValueBuddyOption = sequelize.define('ValueBuddyOption', {

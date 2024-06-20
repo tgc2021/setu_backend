@@ -336,6 +336,7 @@ if(isCorrect || movePositionTo==-1){
       id:valueBuddyQuestion.id,
       question:valueBuddyQuestion?.question,
       index:index-1,
+      valueBuddy:valueBuddyQuestion?.valueBuddy,
       options:valueBuddyOptions?.map(ele=>({id:ele.id,option:ele.option}))
     }
     }

@@ -37,7 +37,7 @@ router.post('/createQuestions', async (req, res) => {
            }
   
         // Check if all options within each question are unique
-        let index=0;
+
         for (const q of questions) {
             
           if(!q.question)
@@ -45,6 +45,9 @@ router.post('/createQuestions', async (req, res) => {
          if(!q.gateNumber){
             return res.status(400).json({ message: 'Missing gateNumber!' });
          }
+         if(!q.valueBuddy){
+          return res.status(400).json({ message: 'Missing valueBuddy!' });
+       }
   
           if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option 
             || option.option.trim() === '' || !option.value 
@@ -54,8 +57,8 @@ router.post('/createQuestions', async (req, res) => {
          }
         
      
-         if( q.options.some(option => option.value<0 && ( option?.movePosition > gameConfiguration?.gatePositions?.[index] || option.movePosition<1 ||  gameConfiguration?.gatePositions.some(id=>id==option.movePosition)))){
-            return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain movePosition value between [1  to ${gameConfiguration?.gatePositions?.[index]}(current gate position)) (note: excluding gate positions)`})
+         if( q.options.some(option => option.value<0 && ( option?.movePosition > gameConfiguration?.gatePositions?.[q.gateNumber-1] || option.movePosition<1 ||  gameConfiguration?.gatePositions.some(id=>id==option.movePosition)))){
+            return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain movePosition value between [1  to ${gameConfiguration?.gatePositions?.[q.gateNumber-1]}(current gate position)) (note: excluding gate positions)`})
            }
 
 
@@ -71,7 +74,7 @@ router.post('/createQuestions', async (req, res) => {
             if (uniqueOptions.size !== options.length) {
                 return res.status(400).json({ message: 'All options within each question must be unique.' });
             }
-            index+=1;
+          
         }
 
            // Create questions
@@ -79,7 +82,8 @@ router.post('/createQuestions', async (req, res) => {
         questions.map(q => ({
           question: q.question,
           SuborganisationId: suborganisationId,
-          gateNumber:q.gateNumber
+          gateNumber:q.gateNumber,
+          valueBuddy:q.valueBuddy
         })),
         { returning: true } // This ensures that the created questions are returned with their IDs
       );
@@ -140,27 +144,35 @@ router.post('/createQuestions', async (req, res) => {
           if(q.questionId==undefined){
             return res.status(400).json({ message: 'questionId is missing for question: ' + q.question});
           }
-          if(q.question &&  questionsData.some(que,index=>index!=q.questionId&&que.question==q.question)){
+      
+          if(q.question ){
+            const existingQuestion = await db.ValueBuddyQuestion.findOne({ where: { SuborganisationId:suborgId,question:q.question  } });
+
+            if(existingQuestion && existingQuestion.id!=q.questionId)
             return res.status(400).json({ message: 'Updated question already exists for the given suborganization.' });
           }
          if(q.options){
-       
-         if ( !Array.isArray(q.options) || q.options.some(option => !option.option || option.option.trim() === '' || !option.value || (option.value<0 && !option.movePositionTo) ||!option.metaInfo)) {
-          return res.status(400).json({ message: 'Options array for questionId: ' + q.questionId + ` must contain non-empty option, metaInfo,value and movePositionTo.(note: movePositionTo should be provided for wrong options only!).` });
-       }
-  
-       if( q.options.some(option => option.value<0 && ( option.movePositionTo > gameConfiguration?.gatePositions?.[q.questionId] || option.movePositionTo<0 ||  gameConfiguration?.gatePositions.some(id=>id==option.movePositionTo)))){
-        return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain movePositionTo value between [0  to ${gameConfiguration?.gatePositions?.[q.questionId]}(current gate position)) (note: excluding gate positions)`})
-       }
+
+          if ( !Array.isArray(q.options) || q.options.some(option => !option.option 
+            || option.option.trim() === '' || !option.value 
+            || option.movePosition==undefined 
+             ||!option.metaInfo)) {
+            return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain any non-empty option or metaInfo or  value or movePosition.' });
+         }
+        
+     
+         if( q.options.some(option => option.value<0 && ( option?.movePosition > gameConfiguration?.gatePositions?.[q.gateNumber-1] || option.movePosition<1 ||  gameConfiguration?.gatePositions.some(id=>id==option.movePosition)))){
+            return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain movePosition value between [1  to ${gameConfiguration?.gatePositions?.[q.gateNumber-1]}(current gate position)) (note: excluding gate positions)`})
+           }
+
+
+         if( q.options.some(option=>option.value >=0 && (option?.movePosition>3 || option?.movePosition<0))){
+          return res.status(400).json({message:'Options array for question: '+q.question+'must contain movePosition value between 0 to 3 (both inclusive) for correct choice.'})
+         }
          if (q.options.length<2||q.options.length>6) {
-          return res.status(400).json({ message: 'Options array for questionId: ' + q.questionId + ' must contain atleast 2 and atmost 6 non-empty option and value.' });
+          return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain atleast 2 and atmost 6 non-empty option and value.' });
        }
-  
-       const optionValues = q.options.map(option => option.option);
-       const uniqueOptions = new Set(optionValues);
-       if (uniqueOptions.size !== optionValues.length) {
-           return res.status(400).json({ message: 'Options must be unique for questionId:'+q.questionId });
-       }
+ 
       }
       }
   
