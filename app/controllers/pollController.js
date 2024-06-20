@@ -248,14 +248,15 @@ router.post('/saveResponse',authenticateJWT, async (req, res) => {
   if (!Array.isArray(response) || response.some(r => !r.questionId ||  !r?.optionId )) {
     return res.status(400).send({ error: 'Response must be an array of objects with questionId and optionId.' });
   }
-
+  const {count}=await db.Game.findAndCountAll({where:{UserId:userId}});
   // Prepare feedback responses
   const pollResponses = response.map(r => ({
     SuborganisationId:suborgId,
     UserId:userId,
     GameId:gameId,
     PollQuestionId: r.questionId,
-    PollOptionId: r.optionId
+    PollOptionId: r.optionId,
+    attempt:`attempt-${count}`
 
   }));
 

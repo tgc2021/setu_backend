@@ -76,12 +76,13 @@ module.exports = function(io) {
 
     // Update the game's type
     await game.update({ type: gameType });
-
+    const {count}=await db.Game.findAndCountAll({where:{UserId:userId}});
     await db.GameState.create({
         GameId: gameId,
         UserId:userId,
         type: gameType,
-        step:2
+        step:2,
+        attempt:`attempt-${count}`
       });
 
 

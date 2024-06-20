@@ -108,6 +108,7 @@ const GameState = sequelize.define('GameState', {
     type: DataTypes.INTEGER,
     defaultValue: 1 // Set default value to 1
   },
+  attempt:DataTypes.STRING
 });
 
 // Define FeedbackQuestion model
@@ -118,7 +119,8 @@ const FeedbackQuestion = sequelize.define('FeedbackQuestion', {
 // Define FeedbackResponse model
 const FeedbackResponse = sequelize.define('FeedbackResponse', {
   response: DataTypes.STRING,
-  valueBuddy: DataTypes.STRING
+  valueBuddy: DataTypes.STRING,
+  attempt:DataTypes.STRING
 });
 
 // Define PollQuestion model
@@ -134,7 +136,7 @@ const PollOption = sequelize.define('PollOption', {
 
 // Define PollResponse model
 const PollResponse = sequelize.define('PollResponse', {
-
+  attempt:DataTypes.STRING
 });
 
 // Define ValueBuddyQuestions model

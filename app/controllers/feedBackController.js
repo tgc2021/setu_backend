@@ -108,7 +108,8 @@ router.post('/saveResponse',authenticateJWT, async (req, res) => {
   if (!Array.isArray(response) || response.some(r => !r.questionId || !r.feedback || typeof r.feedback !== 'object')) {
     return res.status(400).send({ error: 'Response must be an array of objects with questionId and feedback( value buddy and feedback).' });
   }
-
+  
+  const {count}=await db.Game.findAndCountAll({where:{UserId:userId}});
   // Prepare feedback responses
   const feedbackResponses = []
   response.forEach(r => {
@@ -119,9 +120,10 @@ router.post('/saveResponse',authenticateJWT, async (req, res) => {
     FeedbackQuestionId: r.questionId,
     valueBuddy:feedback.valueBuddy,
     response:feedback.response,
+    attempt:`attempt-${count}`
 
   }))
-feedbackResponses.push(...obj)
+feedbackResponses.push(...obj);
 });
 
  
