@@ -222,12 +222,12 @@ router.get('/',authenticateJWT, async (req, res) => {
 
 
 // Check if a username exists
-router.get('/checkUserName/:username',  async (req, res) => {
-  const { username } = req.params;
+router.get('/checkUserName/:suborgId/:username',  async (req, res) => {
+  const { username,suborgId } = req.params;
 
   try {
     // Query the database to check if the username exists
-    const existingUser = await db.User.findOne({ where: { username } });
+    const existingUser = await db.User.findOne({ where: { username ,SuborganisationId:suborgId} });
 
     // If the user exists, send true; otherwise, send false
     res.json({ exists: !!existingUser });
