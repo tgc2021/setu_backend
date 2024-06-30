@@ -39,7 +39,7 @@ router .get('/overview',authenticateJWT, async (req, res) => {
     }
 
 
-      let step=-2;
+      let step=-3;
     if(user?.pendingGame){
       step=0;
     }else if(!user?.firstTimeUser){

@@ -33,20 +33,23 @@ const upload = multer({
         let mimetypes = [
             'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml',
           ];
-        const folders=["intro","tokens","valueBuddy","dice","game","util"];
+        const folders=["intro","tokens","valueBuddy","dice","game","util","audio","chro"];
         const url=req.protocol + "://" + req.get('host') + req.originalUrl;
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
         const lastEndpoint = pathSegments[pathSegments.length - 1];
         let folderCheck=folders?.includes(lastEndpoint);
-        console.log(file.mimetype)
+      
         if(lastEndpoint=='audio'){
           filetypes=/mp3|wav|ogg/;
-          folderCheck=true;
           mimetypes=['audio/mpeg', 'audio/wav', 'audio/ogg']
         }
-        const mimetype = mimetypes.includes(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        let mimetype = mimetypes.includes(file.mimetype);
+        let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        if(lastEndpoint=='chro' && file.fieldname=='chro' ){
+            mimetype=true;
+            extname=true;
+        }
         console.log(mimetype,extname,folderCheck,filetypes)
         if (mimetype && extname && folderCheck) {
             return cb(null, true); 
@@ -56,7 +59,10 @@ const upload = multer({
             }else{
                 if(lastEndpoint=='audio'){
                     cb(new Error('Only audio files are allowed'));
-                }else{
+                }else  if(lastEndpoint=='video'){
+                    cb(new Error('Only video files are allowed'));
+                }
+                else{
             cb(new Error('Only images are allowed'));
                 }
             }
@@ -74,6 +80,15 @@ const uploadRouteHandler=async (req,res)=>{
         files.forEach(file => {
             const columnName = file.fieldname;
             data[columnName] = file.path;
+        });
+    }
+    const textFields=["certificateText","congratulationText","isEnabled"];
+    if (req.body) {
+        Object.keys(req.body).forEach((key) => {
+            if (textFields.includes(key)) {
+                    data[key] = req.body[key];
+               
+            }
         });
     }
     try {
@@ -124,14 +139,18 @@ router.post('/util', upload.any(), async (req, res) => {
 });
 
 router.post('/audio', upload.any(), async (req, res) => {
-    req.query.table="UtilAssets";
+    req.query.table="AudioAssets";
     return await uploadRouteHandler(req,res);
 });
 
+router.post('/chro', upload.any(), async (req, res) => {
+    req.query.table="ChroAssets";
+    return await uploadRouteHandler(req,res);
+});
 // Delete asset
 router.delete('/delete', async (req, res) => {
     const { suborgId,files,table} = req.query;
-    const tables=['IntroAssets',"TokenAssets","ValueBuddyAssets","DiceAssets","GameAssets","UtilAssets"]
+    const tables=['IntroAssets',"TokenAssets","ValueBuddyAssets","DiceAssets","GameAssets","UtilAssets","AudioAssets","ChroAssets"]
  
     if(!table){
         return res.status(400).send({ error: 'table cantbe empty!' });

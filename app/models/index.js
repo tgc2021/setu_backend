@@ -219,18 +219,14 @@ pollBg:DataTypes.STRING,
 pollQuestionBg:DataTypes.STRING,
 pollOptionBg:DataTypes.STRING,
 certificateImg:DataTypes.STRING,
+certificateText:DataTypes.STRING(999),
+congratulationText:DataTypes.STRING(999),
+congratulationBg:DataTypes.STRING,
 downloadIcon:DataTypes.STRING,
 otpSuccess:DataTypes.STRING,
 forgotPassword:DataTypes.STRING,
 updateSuccess:DataTypes.STRING,
-gameMusic:DataTypes.STRING,
-diceRollSound:DataTypes.STRING,
-tokenSound:DataTypes.STRING,
-gateOpenSound:DataTypes.STRING,
-wonPointSound:DataTypes.STRING,
-lostPointSound:DataTypes.STRING,
-snakeSound:DataTypes.STRING,
-gameFinish:DataTypes.STRING,
+
 
 });
 
@@ -251,7 +247,72 @@ introImg13:DataTypes.STRING,
 introImg14:DataTypes.STRING,
 introImg15:DataTypes.STRING,
 })
-
+const ValueBuddyAssets=sequelize.define('ValueBuddyAssets',{
+  vb1:DataTypes.STRING,
+ vbHappy1:DataTypes.STRING,
+ vbSad1:DataTypes.STRING,
+ vbThumb1:DataTypes.STRING,
+ vb2:DataTypes.STRING,
+ vbHappy2:DataTypes.STRING,
+ vbSad2:DataTypes.STRING,
+ vbThumb2:DataTypes.STRING,
+ vb3:DataTypes.STRING,
+ vbHappy3:DataTypes.STRING,
+ vbSad3:DataTypes.STRING,
+ vbThumb3:DataTypes.STRING,
+ vb4:DataTypes.STRING,
+ vbHappy4:DataTypes.STRING,
+ vbSad4:DataTypes.STRING,
+ vbThumb4:DataTypes.STRING,
+ vb5:DataTypes.STRING,
+ vbHappy5:DataTypes.STRING,
+ vbSad5:DataTypes.STRING,
+ vbThumb5:DataTypes.STRING,
+ vb6:DataTypes.STRING,
+ vbHappy6:DataTypes.STRING,
+ vbSad6:DataTypes.STRING,
+ vbThumb6:DataTypes.STRING,
+ vb7:DataTypes.STRING,
+ vbHappy7:DataTypes.STRING,
+ vbSad7:DataTypes.STRING,
+ vbThumb7:DataTypes.STRING,
+ vb8:DataTypes.STRING,
+ vbHappy8:DataTypes.STRING,
+ vbSad8:DataTypes.STRING,
+ vbThumb8:DataTypes.STRING,
+ vb9:DataTypes.STRING,
+ vbHappy9:DataTypes.STRING,
+ vbSad9:DataTypes.STRING,
+ vbThumb9:DataTypes.STRING,
+ vb10:DataTypes.STRING,
+ vbHappy10:DataTypes.STRING,
+ vbSad10:DataTypes.STRING,
+ vbThumb10:DataTypes.STRING,
+ vb11:DataTypes.STRING,
+ vbHappy11:DataTypes.STRING,
+ vbSad11:DataTypes.STRING,
+ vbThumb11:DataTypes.STRING,
+ vb12:DataTypes.STRING,
+ vbHappy12:DataTypes.STRING,
+ vbSad12:DataTypes.STRING,
+ vbThumb12:DataTypes.STRING,
+ vb13:DataTypes.STRING,
+ vbHappy13:DataTypes.STRING,
+ vbSad13:DataTypes.STRING,
+ vbThumb13:DataTypes.STRING,
+ vb14:DataTypes.STRING,
+ vbHappy14:DataTypes.STRING,
+ vbSad14:DataTypes.STRING,
+ vbThumb14:DataTypes.STRING,
+ vb15:DataTypes.STRING,
+ vbHappy15:DataTypes.STRING,
+ vbSad15:DataTypes.STRING,
+ vbThumb15:DataTypes.STRING,
+ vb16:DataTypes.STRING,
+ vbHappy16:DataTypes.STRING,
+ vbSad16:DataTypes.STRING,
+ vbThumb16:DataTypes.STRING,
+ })
 const TokenAssets=sequelize.define('TokenAssets',{
 tokenIcon1:DataTypes.STRING,
 tokenIcon2:DataTypes.STRING,
@@ -266,72 +327,7 @@ tokenCard4:DataTypes.STRING,
 tokenCard5:DataTypes.STRING,
 tokenCard6:DataTypes.STRING,
 })
-const ValueBuddyAssets=sequelize.define('ValueBuddyAssets',{
- vb1:DataTypes.STRING,
-vbHappy1:DataTypes.STRING,
-vbSad1:DataTypes.STRING,
-vbThumb1:DataTypes.STRING,
-vb2:DataTypes.STRING,
-vbHappy2:DataTypes.STRING,
-vbSad2:DataTypes.STRING,
-vbThumb2:DataTypes.STRING,
-vb3:DataTypes.STRING,
-vbHappy3:DataTypes.STRING,
-vbSad3:DataTypes.STRING,
-vbThumb3:DataTypes.STRING,
-vb4:DataTypes.STRING,
-vbHappy4:DataTypes.STRING,
-vbSad4:DataTypes.STRING,
-vbThumb4:DataTypes.STRING,
-vb5:DataTypes.STRING,
-vbHappy5:DataTypes.STRING,
-vbSad5:DataTypes.STRING,
-vbThumb5:DataTypes.STRING,
-vb6:DataTypes.STRING,
-vbHappy6:DataTypes.STRING,
-vbSad6:DataTypes.STRING,
-vbThumb6:DataTypes.STRING,
-vb7:DataTypes.STRING,
-vbHappy7:DataTypes.STRING,
-vbSad7:DataTypes.STRING,
-vbThumb7:DataTypes.STRING,
-vb8:DataTypes.STRING,
-vbHappy8:DataTypes.STRING,
-vbSad8:DataTypes.STRING,
-vbThumb8:DataTypes.STRING,
-vb9:DataTypes.STRING,
-vbHappy9:DataTypes.STRING,
-vbSad9:DataTypes.STRING,
-vbThumb9:DataTypes.STRING,
-vb10:DataTypes.STRING,
-vbHappy10:DataTypes.STRING,
-vbSad10:DataTypes.STRING,
-vbThumb10:DataTypes.STRING,
-vb11:DataTypes.STRING,
-vbHappy11:DataTypes.STRING,
-vbSad11:DataTypes.STRING,
-vbThumb11:DataTypes.STRING,
-vb12:DataTypes.STRING,
-vbHappy12:DataTypes.STRING,
-vbSad12:DataTypes.STRING,
-vbThumb12:DataTypes.STRING,
-vb13:DataTypes.STRING,
-vbHappy13:DataTypes.STRING,
-vbSad13:DataTypes.STRING,
-vbThumb13:DataTypes.STRING,
-vb14:DataTypes.STRING,
-vbHappy14:DataTypes.STRING,
-vbSad14:DataTypes.STRING,
-vbThumb14:DataTypes.STRING,
-vb15:DataTypes.STRING,
-vbHappy15:DataTypes.STRING,
-vbSad15:DataTypes.STRING,
-vbThumb15:DataTypes.STRING,
-vb16:DataTypes.STRING,
-vbHappy16:DataTypes.STRING,
-vbSad16:DataTypes.STRING,
-vbThumb16:DataTypes.STRING,
-})
+
 const DiceAssets=sequelize.define('DiceAssets',{
 dice:DataTypes.STRING,
 dice1:DataTypes.STRING,
@@ -376,11 +372,28 @@ const GameAssets=sequelize.define('GameAssets',{
   metaInfoBg:DataTypes.STRING,
   magnusFinalImg:DataTypes.STRING,
 
+
+
 });
 
+const AudioAssets=sequelize.define('AudioAssets',{
+  gameMusic:DataTypes.STRING,
+diceRollSound:DataTypes.STRING,
+tokenSound:DataTypes.STRING,
+gateOpenSound:DataTypes.STRING,
+wonPointSound:DataTypes.STRING,
+lostPointSound:DataTypes.STRING,
+snakeSound:DataTypes.STRING,
+gameFinish:DataTypes.STRING,
+  correctSound:DataTypes.STRING,
+  wrongSound:DataTypes.STRING
+})
 
-
-
+const ChroAssets=sequelize.define('ChroAssets',{
+  chro:DataTypes.STRING,
+  chroBg:DataTypes.STRING,
+  isEnabled:DataTypes.BOOLEAN
+})
 
 const Logs = sequelize.define('Logs', {
 
@@ -501,7 +514,8 @@ TokenAssets.belongsTo(Suborganisation);
 ValueBuddyAssets.belongsTo(Suborganisation);
 DiceAssets.belongsTo(Suborganisation);
 GameAssets.belongsTo(Suborganisation);
-
+AudioAssets.belongsTo(Suborganisation);
+ChroAssets.belongsTo(Suborganisation);
 
 GameConfiguration.belongsTo(Suborganisation);
 
@@ -533,6 +547,8 @@ db.GameConfiguration=GameConfiguration;
 db.GameAssets=GameAssets;
 db.Otp=Otp;
 db.Logs=Logs;
+db.AudioAssets=AudioAssets;
+db.ChroAssets=ChroAssets;
 // db.Assets=Assets;
 
 module.exports = db;
