@@ -202,7 +202,7 @@ if(createdResponses){
     res.status(200).send({
       message: 'Feedback saved successfully!',
       type: 'success',
-      downloadLink: `api/feedback/download/${path.basename(filePath)}`
+      downloadLink: `/api/feedback/download/${path.basename(filePath)}`
     });
   
 
@@ -210,7 +210,7 @@ if(createdResponses){
 });
 
 // Endpoint to handle file download
-router.get('/download/:filename', authenticateJWT, (req, res) => {
+router.get('/download/:filename',(req, res) => {
   const { filename } = req.params;
   const filePath = path.join(downloadsDir, filename);
 
