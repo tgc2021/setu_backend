@@ -441,6 +441,7 @@ if(isCorrect || movePositionTo==-1){
   const isCorrect=value<0?false:true;
   const movePositionTo=valueBuddyOption?.movePosition
   const metaInfo=valueBuddyOption?.metaInfo;
+  const sound=valueBuddyOption?.sound;
  
   const {diceResult,
         from,lastReachedPosition,question,
@@ -450,7 +451,7 @@ if(isCorrect || movePositionTo==-1){
  
     io.to(gameId).emit('dice-rolled', { 
         gameId,from,lastReachedPosition,noOfKarmas,question, 
-        choosenOptionResult:{optionId,isCorrect,metaInfo} ,
+        choosenOptionResult:{optionId,isCorrect,metaInfo,sound} ,
         totalScore,karmaFlag,addedKarmas,removedKarmas
       });
 

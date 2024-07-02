@@ -37,7 +37,7 @@ router.post('/createQuestions', async (req, res) => {
            }
   
         // Check if all options within each question are unique
-
+       const sounds=["metaSound1","metaSound2","metaSound3","metaSound4","metaSound5","metaSound6"]
         for (const q of questions) {
             
           if(!q.question)
@@ -52,15 +52,17 @@ router.post('/createQuestions', async (req, res) => {
           if (!q.options || !Array.isArray(q.options) || q.options.some(option => !option.option 
             || option.option.trim() === '' || !option.value 
             || option.movePosition==undefined 
-             ||!option.metaInfo)) {
-            return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option, metaInfo,value and movePosition.' });
+             ||!option.metaInfo|| !option.sound)) {
+            return res.status(400).json({ message: 'Options array for question: ' + q.question + ' must contain non-empty option, metaInfo,value,sound and movePosition.' });
          }
         
      
          if( q.options.some(option => option.value<0 && ( option?.movePosition > gameConfiguration?.gatePositions?.[q.gateNumber-1] || option.movePosition<1 ||  gameConfiguration?.gatePositions.some(id=>id==option.movePosition)))){
             return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain movePosition value between [1  to ${gameConfiguration?.gatePositions?.[q.gateNumber-1]}(current gate position)) (note: excluding gate positions)`})
            }
-
+         if( q.options.some(option =>!sounds.includes(option?.sound))){
+            return res.status(400).json({message:'Options array for questionId:'+q.questionId+` must contain sound`})
+           }
 
          if( q.options.some(option=>option.value >=0 && (option?.movePosition>3 || option?.movePosition<0))){
           return res.status(400).json({message:'Options array for question: '+q.question+'must contain movePosition value between 0 to 3 (both inclusive) for correct choice.'})
@@ -101,7 +103,8 @@ router.post('/createQuestions', async (req, res) => {
             metaInfo:option.metaInfo,
             movePosition:option.movePosition,
             ValueBuddyQuestionId: questionId,
-            SuborganisationId: suborganisationId
+            SuborganisationId: suborganisationId,
+            sound:option.sound
           });
         });
       });
@@ -234,13 +237,13 @@ router.post('/createQuestions', async (req, res) => {
       const { suborgId } = req.query;
         
         // Check if there are questions associated with the given suborganization
-        const questionsToDelete = await db.ValueBuddyQuestion.findAll({ where: { suborgId } });
+        const questionsToDelete = await db.ValueBuddyQuestion.findAll({ where: { SuborganisationId:suborgId } });
         if (questionsToDelete.length === 0) {
             return res.status(404).json({ message: 'No questions found for the given suborganization.' });
         }
   
         // Delete all questions associated with the given suborganization
-        await ValueBuddyQuestion.destroy({ where: { suborgId } });
+        await db.ValueBuddyQuestion.destroy({ where: { SuborganisationId:suborgId } });
   
         res.json({ message: 'ValueBuddy questions deleted successfully.' });
     } catch (err) {

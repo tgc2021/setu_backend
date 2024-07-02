@@ -150,8 +150,8 @@ const ValueBuddyOption = sequelize.define('ValueBuddyOption', {
   option: DataTypes.STRING,
   value:DataTypes.INTEGER,
   metaInfo:DataTypes.STRING,
-  movePosition:DataTypes.INTEGER
-
+  movePosition:DataTypes.INTEGER,
+  sound:DataTypes.STRING,
 });
 
 const ValueBuddyResponse = sequelize.define('ValueBuddyResponse', {
@@ -377,7 +377,7 @@ const GameAssets=sequelize.define('GameAssets',{
 });
 
 const AudioAssets=sequelize.define('AudioAssets',{
-  gameMusic:DataTypes.STRING,
+gameMusic:DataTypes.STRING,
 diceRollSound:DataTypes.STRING,
 tokenSound:DataTypes.STRING,
 gateOpenSound:DataTypes.STRING,
@@ -385,8 +385,12 @@ wonPointSound:DataTypes.STRING,
 lostPointSound:DataTypes.STRING,
 snakeSound:DataTypes.STRING,
 gameFinish:DataTypes.STRING,
-  correctSound:DataTypes.STRING,
-  wrongSound:DataTypes.STRING
+metaSound1:DataTypes.STRING,
+metaSound2:DataTypes.STRING,
+metaSound3:DataTypes.STRING,
+metaSound4:DataTypes.STRING,
+metaSound5:DataTypes.STRING,
+metaSound6:DataTypes.STRING,
 })
 
 const ChroAssets=sequelize.define('ChroAssets',{
