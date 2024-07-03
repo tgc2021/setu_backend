@@ -55,6 +55,13 @@ module.exports = function(io) {
   
       // Update user's pendingGame column with the new game's ID
       await db.User.update({ pendingGame: newGame.id,firstTimeUser:false }, { where: { id: userId } });
+
+      const {count}=await db.Game.findAndCountAll({where:{UserId:userId}});
+      await db.GameState.create({
+          GameId: newGame.id,
+          UserId:userId,
+          attempt:`attempt-${count}`
+        });
   
       res.status(201).json({type: "success", gameId: newGame.id });
     } catch (error) {
@@ -76,15 +83,17 @@ module.exports = function(io) {
 
     // Update the game's type
     await game.update({ type: gameType });
-    const {count}=await db.Game.findAndCountAll({where:{UserId:userId}});
-    await db.GameState.create({
-        GameId: gameId,
-        UserId:userId,
-        type: gameType,
-        step:2,
-        attempt:`attempt-${count}`
-      });
+  
+    const gameState = await db.GameState.findOne({
+      where: { GameId: gameId, UserId: userId }
+    });
 
+    if (!gameState) {
+      return res.status(404).json({ error: 'Game state not found' });
+    }
+
+    // Update the isValueBuddySelected field to true
+    await gameState.update({  type:gameType,step:2 });
 
   
       res.status(201).json({type: "success" });
