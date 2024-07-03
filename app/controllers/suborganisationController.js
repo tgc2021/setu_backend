@@ -93,7 +93,10 @@ router.get('/check', async (req, res) => {
      if(introAssetsData?.dataValues){
   for (const key in introAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
+      if( typeof introAssetsData[key]==='string')
       introAssets.push(introAssetsData[key]?.replace(/\\/g, '/'));
+      else
+      introAssets.push(introAssetsData[key]);
     
     }
   }
@@ -105,9 +108,15 @@ router.get('/check', async (req, res) => {
   for (const key in tokenAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
       if(key.startsWith("tokenCard")){
+        if( typeof tokenAssetsData[key]==='string')
         tokenCardAssets.push(tokenAssetsData[key]?.replace(/\\/g, '/'));
+      else
+        tokenCardAssets.push(tokenAssetsData[key]);
     }else if(key.startsWith("tokenIcon")){
+      if( typeof tokenAssetsData[key]==='string')
       tokenIconAssets.push(tokenAssetsData[key]?.replace(/\\/g, '/'));
+    else
+    tokenIconAssets.push(tokenAssetsData[key]);
     }
   }
   }
@@ -117,7 +126,10 @@ router.get('/check', async (req, res) => {
   if(valueBuddyAssetsData?.dataValues){
   for (const key in valueBuddyAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
+      if( typeof valueBuddyAssetsData[key]==='string')
       valueBuddyAssets.push(valueBuddyAssetsData[key]?.replace(/\\/g, '/'));
+    else
+    valueBuddyAssets.push(valueBuddyAssetsData[key]);
     }
   }
   }
@@ -126,7 +138,10 @@ router.get('/check', async (req, res) => {
   if(diceAssetsData?.dataValues){
   for (const key in diceAssetsData.dataValues) {
     if (!removedColumn.includes(key)) {
+      if( typeof diceAssetsData[key]==='string')
       diceAssets.push(diceAssetsData[key]?.replace(/\\/g, '/'));
+    else
+     diceAssets.push(diceAssetsData[key]);
     }
   }
 }
@@ -134,7 +149,11 @@ let gameAssets={}
 if (gameAssetsData?.dataValues) {
   Object.keys(gameAssetsData.dataValues).forEach(key => {
     if (!removedColumn.includes(key)) {
+      if( typeof gameAssetsData[key]==='string')
     gameAssets[key] =gameAssetsData[key]?.replace(/\\/g, '/');
+  else
+  gameAssets[key] =gameAssetsData[key];
+
     }
   });
 }
@@ -143,8 +162,11 @@ let utilAssets={}
 if (utilAssetsData?.dataValues) {
   Object.keys(utilAssetsData.dataValues).forEach(key => {
     if (!removedColumn.includes(key)) {
+      if( typeof utilAssetsData[key]==='string')
     utilAssets[key] =utilAssetsData[key]?.replace(/\\/g, '/');
-    }
+    else
+    utilAssets[key] =utilAssetsData[key];
+  }
   });
 }
 
@@ -152,17 +174,25 @@ let audioAssets={}
 if (audioAssetsData?.dataValues) {
   Object.keys(audioAssetsData.dataValues).forEach(key => {
     if (!removedColumn.includes(key)) {
+      if( typeof audioAssetsData[key]==='string')
     audioAssets[key] =audioAssetsData[key]?.replace(/\\/g, '/');
+  else
+  audioAssets[key] =audioAssetsData[key];
     }
   });
 }
 
 let chroAssets={}
+
 if (chroAssetsData?.dataValues) {
   Object.keys(chroAssetsData.dataValues).forEach(key => {
-    if (!removedColumn.includes(key)) {
+    if (!removedColumn.includes(key) ) {
+   if( typeof chroAssetsData[key]==='string'){
     chroAssets[key] =chroAssetsData[key]?.replace(/\\/g, '/');
+    }else{
+      chroAssets[key] =chroAssetsData[key];
     }
+  }
   });
 }
 

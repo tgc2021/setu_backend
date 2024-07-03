@@ -174,9 +174,9 @@ router.post('/login', async (req, res) => {
         { expiresIn: '1d' } // Set expiry to 1 day
       );
 
-     const log = await db.Logs.create({UserId:user.id});
+     const log = await db.Logs.create({UserId:user.id,SuborganisationId:user.SuborganisationId});
       // Send JWT token as response
-      res.json({type:'success', message: 'Login successful', token });
+      res.json({type:'success', message: 'Login successful', token,firstTimeUser:user?.firstTimeUser });
     } catch (error) {
       res.status(500).json({type:'error', message: error.message });
     }
