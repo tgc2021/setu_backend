@@ -163,7 +163,7 @@ if(createdResponses){
   const headers = ['Question'];
   const maxFeedbacks = Math.max(...Array.from(questionMap.values()).map(q => q.feedbacks.length));
   for (let i = 1; i <= maxFeedbacks; i++) {
-    headers.push(`ValueBuddy${i}`);
+    headers.push(`Value${i}`);
     headers.push(`Response${i}`);
   }
   worksheet.addRow(headers);
