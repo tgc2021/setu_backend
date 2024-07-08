@@ -84,6 +84,7 @@ router.get('/check', async (req, res) => {
       const utilAssetsData = await db.UtilAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const audioAssetsData = await db.AudioAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const chroAssetsData = await db.ChroAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const valueBuddyDescAssetsData = await db.ValueBuddyDescAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       if (!introAssetsData ) {
         return res.status(404).json({ type:'error',message: 'Assets not found for the given suborganisation.' });
       
@@ -130,6 +131,18 @@ router.get('/check', async (req, res) => {
       valueBuddyAssets.push(valueBuddyAssetsData[key]?.replace(/\\/g, '/'));
     else
     valueBuddyAssets.push(valueBuddyAssetsData[key]);
+    }
+  }
+  }
+
+  const valueBuddyDescAssets = [];
+  if(valueBuddyDescAssetsData?.dataValues){
+  for (const key in valueBuddyDescAssetsData.dataValues) {
+    if (!removedColumn.includes(key)) {
+      if( typeof valueBuddyDescAssetsData[key]==='string')
+      valueBuddyDescAssets.push(valueBuddyDescAssetsData[key]?.replace(/\\/g, '/'));
+    else
+    valueBuddyDescAssets.push(valueBuddyDescAssetsData[key]);
     }
   }
   }
@@ -196,6 +209,8 @@ if (chroAssetsData?.dataValues) {
   });
 }
 
+
+
       res.json({id:suborganisation.id,
          configuredAuth,
          introAssets,
@@ -206,7 +221,8 @@ if (chroAssetsData?.dataValues) {
          gameAssets,
          utilAssets,
          audioAssets,
-         chroAssets
+         chroAssets,
+         valueBuddyDescAssets
       });
     }
   } catch (error) {

@@ -313,6 +313,43 @@ const ValueBuddyAssets=sequelize.define('ValueBuddyAssets',{
  vbSad16:DataTypes.STRING,
  vbThumb16:DataTypes.STRING,
  })
+
+ const ValueBuddyDescAssets=sequelize.define('ValueBuddyDescAssets',{
+
+ vbDesc1:DataTypes.STRING,
+
+ vbDesc2:DataTypes.STRING,
+
+ vbDesc3:DataTypes.STRING,
+
+ vbDesc4:DataTypes.STRING,
+
+ vbDesc5:DataTypes.STRING,
+
+ vbDesc6:DataTypes.STRING,
+
+ vbDesc7:DataTypes.STRING,
+
+ vbDesc8:DataTypes.STRING,
+
+ vbDesc9:DataTypes.STRING,
+
+ vbDesc10:DataTypes.STRING,
+
+ vbDesc11:DataTypes.STRING,
+
+ vbDesc12:DataTypes.STRING,
+
+ vbDesc13:DataTypes.STRING,
+
+ vbDesc14:DataTypes.STRING,
+
+ vbDesc15:DataTypes.STRING,
+
+ vbDesc16:DataTypes.STRING,
+ })
+
+
 const TokenAssets=sequelize.define('TokenAssets',{
 tokenIcon1:DataTypes.STRING,
 tokenIcon2:DataTypes.STRING,
@@ -520,7 +557,7 @@ DiceAssets.belongsTo(Suborganisation);
 GameAssets.belongsTo(Suborganisation);
 AudioAssets.belongsTo(Suborganisation);
 ChroAssets.belongsTo(Suborganisation);
-
+ValueBuddyDescAssets.belongsTo(Suborganisation);
 GameConfiguration.belongsTo(Suborganisation);
 
 Logs.belongsTo(User);
@@ -553,6 +590,7 @@ db.Otp=Otp;
 db.Logs=Logs;
 db.AudioAssets=AudioAssets;
 db.ChroAssets=ChroAssets;
+db.ValueBuddyDescAssets=ValueBuddyDescAssets;
 // db.Assets=Assets;
 
 module.exports = db;

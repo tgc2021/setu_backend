@@ -33,7 +33,7 @@ const upload = multer({
         let mimetypes = [
             'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml',
           ];
-        const folders=["intro","tokens","valueBuddy","dice","game","util","audio","chro"];
+        const folders=["intro","tokens","valueBuddy","dice","game","util","audio","chro","valueBuddyDesc"];
         const url=req.protocol + "://" + req.get('host') + req.originalUrl;
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
@@ -138,6 +138,10 @@ router.post('/util', upload.any(), async (req, res) => {
     return await uploadRouteHandler(req,res);
 });
 
+router.post('/valueBuddyDesc', upload.any(), async (req, res) => {
+    req.query.table="ValueBuddyDescAssets";
+    return await uploadRouteHandler(req,res);
+});
 router.post('/audio', upload.any(), async (req, res) => {
     req.query.table="AudioAssets";
     return await uploadRouteHandler(req,res);
