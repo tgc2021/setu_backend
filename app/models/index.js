@@ -433,7 +433,9 @@ metaSound6:DataTypes.STRING,
 const ChroAssets=sequelize.define('ChroAssets',{
   chro:DataTypes.STRING,
   chroBg:DataTypes.STRING,
-  isEnabled:DataTypes.BOOLEAN
+  isEnabled:DataTypes.BOOLEAN,
+  orgValueAsset:DataTypes.STRING,
+  orgFieldName:DataTypes.STRING,
 })
 
 const Logs = sequelize.define('Logs', {

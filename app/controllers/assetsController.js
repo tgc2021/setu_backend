@@ -46,7 +46,7 @@ const upload = multer({
         }
         let mimetype = mimetypes.includes(file.mimetype);
         let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        if(lastEndpoint=='chro' && file.fieldname=='chro' ){
+        if(lastEndpoint=='chro' && (file.fieldname=='chro'||file.fieldname=="orgValueAsset") ){
             mimetype=true;
             extname=true;
         }
@@ -82,7 +82,7 @@ const uploadRouteHandler=async (req,res)=>{
             data[columnName] = file.path;
         });
     }
-    const textFields=["certificateText","congratulationText","isEnabled"];
+    const textFields=["certificateText","congratulationText","isEnabled","orgFieldName"];
     if (req.body) {
         Object.keys(req.body).forEach((key) => {
             if (textFields.includes(key)) {
