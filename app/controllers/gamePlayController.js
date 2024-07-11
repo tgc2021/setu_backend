@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
-
+const { Op,Sequelize } = require('sequelize');
 
 module.exports = function(io) {
 
@@ -60,7 +60,8 @@ module.exports = function(io) {
       await db.GameState.create({
           GameId: newGame.id,
           UserId:userId,
-          attempt:`attempt-${count}`
+          attempt:`attempt-${count}`,
+          SuborganisationId:suborgId
         });
   
       res.status(201).json({type: "success", gameId: newGame.id });

@@ -33,7 +33,7 @@ const upload = multer({
         let mimetypes = [
             'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml',
           ];
-        const folders=["intro","tokens","valueBuddy","dice","game","util","audio","chro","valueBuddyDesc"];
+        const folders=["intro","tokens","valueBuddy","dice","game","util","audio","chro"];
         const url=req.protocol + "://" + req.get('host') + req.originalUrl;
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
@@ -73,7 +73,7 @@ const upload = multer({
 
 const uploadRouteHandler=async (req,res)=>{
     const { suborgId } = req.query;
-    const files = req.files;
+    const files = req?.files;
     const data = {};
 
     if (files && files.length > 0) {
@@ -138,10 +138,7 @@ router.post('/util', upload.any(), async (req, res) => {
     return await uploadRouteHandler(req,res);
 });
 
-router.post('/valueBuddyDesc', upload.any(), async (req, res) => {
-    req.query.table="ValueBuddyDescAssets";
-    return await uploadRouteHandler(req,res);
-});
+
 router.post('/audio', upload.any(), async (req, res) => {
     req.query.table="AudioAssets";
     return await uploadRouteHandler(req,res);
@@ -185,5 +182,37 @@ router.delete('/delete', async (req, res) => {
     }
 });
 
+
+//add value buddy description
+router.post('/valueBuddyDesc', async (req, res) => {
+    const { suborgId } = req.query;
+    const data = {};
+
+    if (req.body) {
+        Object.keys(req.body).forEach((key) => {
+                    data[key] = req.body[key];
+        });
+    }
+    console.log("body",req.body,data)
+    try {
+     
+        let vbDesc = await db.ValueBuddyDesc.findOne({ where: { SuborganisationId: suborgId } });
+        if (vbDesc) {
+            // Update existing vbDesc
+            vbDesc = await vbDesc.update(data);
+       
+         return res.json({ message: `Value Buddy Description updated successfully`,data: vbDesc });
+
+        } else {
+            // Create new asset
+            vbDesc = await db.ValueBuddyDesc.create({ SuborganisationId:suborgId, ...data });
+        
+            return res.json({ message: `Value Buddy Description created successfully`,data: vbDesc });
+        }
+ 
+    } catch (error) {
+       return  res.status(500).json({ error: error.message });
+    }
+});
 module.exports = router;
 

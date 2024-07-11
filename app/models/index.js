@@ -314,7 +314,7 @@ const ValueBuddyAssets=sequelize.define('ValueBuddyAssets',{
  vbThumb16:DataTypes.STRING,
  })
 
- const ValueBuddyDescAssets=sequelize.define('ValueBuddyDescAssets',{
+ const ValueBuddyDesc=sequelize.define('ValueBuddyDesc',{
 
  vbDesc1:DataTypes.STRING,
 
@@ -470,7 +470,8 @@ User.hasMany(Game);
 Game.belongsTo(Suborganisation);
 Suborganisation.hasMany(Game);
 
-
+GameState.belongsTo(Suborganisation);
+Suborganisation.hasMany(GameState);
 
 
 GameState.belongsTo(User);
@@ -559,7 +560,7 @@ DiceAssets.belongsTo(Suborganisation);
 GameAssets.belongsTo(Suborganisation);
 AudioAssets.belongsTo(Suborganisation);
 ChroAssets.belongsTo(Suborganisation);
-ValueBuddyDescAssets.belongsTo(Suborganisation);
+ValueBuddyDesc.belongsTo(Suborganisation);
 GameConfiguration.belongsTo(Suborganisation);
 
 Logs.belongsTo(User);
@@ -592,7 +593,7 @@ db.Otp=Otp;
 db.Logs=Logs;
 db.AudioAssets=AudioAssets;
 db.ChroAssets=ChroAssets;
-db.ValueBuddyDescAssets=ValueBuddyDescAssets;
+db.ValueBuddyDesc=ValueBuddyDesc;
 // db.Assets=Assets;
 
 module.exports = db;

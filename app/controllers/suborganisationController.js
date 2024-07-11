@@ -2,7 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
-const { Op } = require('sequelize');
+const { Op,Sequelize } = require('sequelize');
+
 
 // Create a new suborganisation
 router.post('/create', async (req, res) => {
@@ -84,7 +85,7 @@ router.get('/check', async (req, res) => {
       const utilAssetsData = await db.UtilAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const audioAssetsData = await db.AudioAssets.findOne({where:{SuborganisationId:suborganisation.id}});
       const chroAssetsData = await db.ChroAssets.findOne({where:{SuborganisationId:suborganisation.id}});
-      const valueBuddyDescAssetsData = await db.ValueBuddyDescAssets.findOne({where:{SuborganisationId:suborganisation.id}});
+      const valueBuddyDescData = await db.ValueBuddyDesc.findOne({where:{SuborganisationId:suborganisation.id}});
       if (!introAssetsData ) {
         return res.status(404).json({ type:'error',message: 'Assets not found for the given suborganisation.' });
       
@@ -135,14 +136,11 @@ router.get('/check', async (req, res) => {
   }
   }
 
-  const valueBuddyDescAssets = [];
-  if(valueBuddyDescAssetsData?.dataValues){
-  for (const key in valueBuddyDescAssetsData.dataValues) {
+  const valueBuddyDesc = [];
+  if(valueBuddyDescData?.dataValues){
+  for (const key in valueBuddyDescData.dataValues) {
     if (!removedColumn.includes(key)) {
-      if( typeof valueBuddyDescAssetsData[key]==='string')
-      valueBuddyDescAssets.push(valueBuddyDescAssetsData[key]?.replace(/\\/g, '/'));
-    else
-    valueBuddyDescAssets.push(valueBuddyDescAssetsData[key]);
+    valueBuddyDesc.push(valueBuddyDescData[key]);
     }
   }
   }
@@ -222,7 +220,7 @@ if (chroAssetsData?.dataValues) {
          utilAssets,
          audioAssets,
          chroAssets,
-         valueBuddyDescAssets
+         valueBuddyDesc
       });
     }
   } catch (error) {
@@ -274,7 +272,41 @@ router.delete('/delete', async (req, res) => {
   }
 });
 
+router.get('/leader-board', async(req,res)=>{
+  try {
+    const {suborgId}=req.query;
+    const suborganisation = await db.Suborganisation.findByPk(suborgId);
+    if (!suborganisation) {
+      res.status(404).json({ message: 'Suborganisation not found' });
+    }
+    const results = await db.GameState.findAll({
+      attributes: [
+        'UserId',
+        [Sequelize.fn('SUM', Sequelize.col('totalScore')), 'totalScoreSum']
+      ],
+      where: {
+        type: 'single',
+        SuborganisationId:suborgId,
+        step: {
+          [Sequelize.Op.gt]: 3
+        }
+      },
+      include: [{
+        model: db.User,
+        attributes: ['name', 'username','email','phone','city']
+      }],
+      group: ['UserId', 'User.id', 'User.name', 'User.username','User.email','User.phone','User.city'], // Group by all selected fields in User model
+      order: [
+        [Sequelize.literal('totalScoreSum'), 'DESC'],
+        [db.User, 'name', 'ASC']
+      ]
+    });
 
+    return res.json({data:results });
+  } catch (error) {
+    console.error('Error executing query:', error);
+  }
+})
 
 
 module.exports = router;
