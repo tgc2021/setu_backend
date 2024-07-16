@@ -293,7 +293,12 @@ router.get('/leader-board', async(req,res)=>{
       },
       include: [{
         model: db.User,
-        attributes: ['name', 'username','email','phone','city']
+        attributes: ['name', 'username','email','phone','city'],
+        where: { // Add this where clause to filter out rows where the user does not exist
+   
+      username: { [Sequelize.Op.ne]: null },
+ 
+    }
       }],
       group: ['UserId', 'User.id', 'User.name', 'User.username','User.email','User.phone','User.city'], // Group by all selected fields in User model
       order: [

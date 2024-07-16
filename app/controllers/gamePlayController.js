@@ -372,13 +372,74 @@ if(isCorrect || movePositionTo==-1){
         question, noOfKarmas:gameState.noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas}
   }
 
+
+ async function socketsData(suborgId,gameId){
+    const socketsData = {}
+    const rooms=[]
+    for (let [id, socket] of io.of("/").sockets) {
+  
+      for (let room of socket.rooms) {
+
+
+        if( room !== id && !rooms.includes(room)){
+      
+        
+     const gameState = await db.GameState.findOne({
+      where: {
+        SuborganisationId: suborgId,
+        GameId: room,
+        step: {
+          [Op.eq]: 3
+        }
+      },
+      include: [{
+        model: db.User,
+        attributes: ['name', 'username', 'email', 'phone', 'city']
+      }],
+      order: [
+        ['totalScore', 'DESC'],
+        [db.User, 'name', 'ASC']
+      ]
+      });
+
+   console.log("game state in sockets data ===>",room , gameState?.lastReachedPosition)
+
+      if(gameState){
+          
+          rooms.push(room);
+          if(socketsData[gameState?.lastReachedPosition]){
+            socketsData[gameState?.lastReachedPosition]["type"]="multiple";
+            socketsData[gameState?.lastReachedPosition]["data"].push(gameState);
+          }else{
+            if(gameState?.lastReachedPosition>=100)
+              gameState["lastReachedPosition"]=100
+            socketsData[gameState?.lastReachedPosition]={}
+            socketsData[gameState?.lastReachedPosition]["type"]="single";
+            socketsData[gameState?.lastReachedPosition]["data"]=[gameState];
+          }
+        }
+      
+      }
+        }
+  
+    }
+    return {socketsData,rooms};
+  }
+
+
   io.on('connection', socket => {
    // console.log('A user connected',socket.user.id);
-    
-    socket.on('join-game', ({ gameId }) => {
+ 
+
+    socket.on('join-game', async ({ gameId }) => {
       // Join the socket to a room corresponding to the game ID
+      const suborgId=socket.user.SuborganisationId;
       console.log('joined room with id',gameId)
       socket.join(gameId);
+    //emit all palyers data
+    const data =  await socketsData(suborgId,gameId);
+    console.log('socket data',data?.rooms)
+   // io.to(data?.rooms).emit('socketsData',{"data":data?.socketsData});
     });
   
     socket.on('fetch-game-state', async({ gameId }) => {
@@ -397,6 +458,11 @@ if(isCorrect || movePositionTo==-1){
       io.to(gameId).emit('dice-rolled', { gameId, diceResult, from ,lastReachedPosition,
         question,noOfKarmas ,totalScore,karmaFlag,refreshed:true,addedKarmas,removedKarmas});
       }
+
+  //emit all palyers data
+  const data =  await socketsData(suborgId,gameId);
+  io.to(data?.rooms).emit('socketsData',{"data":data?.socketsData});
+
     } catch (error) {
       console.error('Error rolling dice:', error);
     }
@@ -416,13 +482,19 @@ if(isCorrect || movePositionTo==-1){
         // Emit the dice-rolled event to the specific game room identified by gameId
         io.to(gameId).emit('dice-rolled', { gameId, diceResult,from,lastReachedPosition,
           question,noOfKarmas,totalScore,karmaFlag,addedKarmas,removedKarmas });
+
+
+
+          //emit all palyers data
+          const data =  await socketsData(suborgId,gameId);
+          io.to(data?.rooms).emit('socketsData',{"data":data?.socketsData});
       } catch (error) {
         console.error('Error rolling dice:', error);
       }
     });
   
 
- socket.on('handle-valuebuddy-question',async ({gameId,questionId,optionId})=>{
+    socket.on('handle-valuebuddy-question',async ({gameId,questionId,optionId})=>{
  //check the option value add it lastreachdPosition and update lastCrossedGatePositon
  try {
 
@@ -466,13 +538,22 @@ if(isCorrect || movePositionTo==-1){
       });
 
 
+
+        //emit all palyers data
+        const data =  await socketsData(suborgId,gameId);
+        io.to(data?.rooms).emit('socketsData',{"data":data?.socketsData});
+
     } catch (error) {
       console.error('Error handling valuebuddy question:', error);
     }
     })
   
-    socket.on('disconnect', () => {
+    socket.on('disconnect',async () => {
       console.log('A user disconnected');
+      const suborgId=socket.user.SuborganisationId;
+      //emit all palyers data
+      const data =  await socketsData(suborgId,-1);
+      io.to(data?.rooms).emit('socketsData',{"data":data?.socketsData});
     });
   });
   
