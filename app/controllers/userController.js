@@ -145,15 +145,15 @@ router.post('/login', async (req, res) => {
 
     try {
 
-
-      // Find user by username or email
-      const user = await db.User.findOne({ where: { username } });
-  
       if(!suborgId || suborgId && !await db.Suborganisation.findByPk(suborgId)){
         return res.status(400).json({type:'error', message: 'Suborgnisation not found!' });
       }
+      // Find user by username or email
+      const user = await db.User.findOne({ where: { username,SuborganisationId:suborgId } });
+  
+    
       // Check if user exists
-      if (!user || user && user.SuborganisationId!=suborgId) {
+      if (!user ) {
         return res.status(404).json({type:'error', message: 'User not found' });
       }
   
