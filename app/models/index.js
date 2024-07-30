@@ -77,12 +77,18 @@ const User = sequelize.define('User', {
 const Game = sequelize.define('Game', {
   startTime: DataTypes.DATE,
   endTime: DataTypes.DATE,
-  type: DataTypes.ENUM('single', 'multiplayer')
+  type: {
+    type:DataTypes.ENUM('single', 'multiplayer'),
+    defaultValue: 'single'
+  }
 });
 
 // Define GameState model
 const GameState = sequelize.define('GameState', {
-  type: DataTypes.STRING,
+  type: {
+    type:DataTypes.ENUM('single', 'multiplayer'),
+    defaultValue: 'single'
+  },
   selectedToken: DataTypes.STRING,
   isValueBuddySelected: DataTypes.BOOLEAN,
   lastDiceCount: DataTypes.INTEGER,
